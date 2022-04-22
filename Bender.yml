@@ -1,11 +1,9 @@
 package:
-  name: ariane
+  name: cva6
   authors:
     - "Florian Zaruba <zarubaf@iis.ee.ethz.ch>"
     - "Michael Schaffner <schaffner@iis.ee.ethz.ch>"
-    - "Andreas Kuster <kustera@ethz.ch>"
 
-# WT_DCACHE
 dependencies:
   fpnew: { git: "https://github.com/pulp-platform/fpnew.git", version: 0.6.5 }
   common_cells: { git: "https://github.com/pulp-platform/common_cells.git", version: 1.21.0 }
@@ -13,78 +11,78 @@ dependencies:
   tech_cells_generic: { git: "https://github.com/pulp-platform/tech_cells_generic.git", version: 0.2.7 }
   riscv-dbg: { git: "git@github.com:Alsaqr-platform/riscv-dbg.git", version: 0.4.1 }
 
-
 sources:
   - defines:
-      WT_DCACHE: ~
     files:
     # Packages
-    - target: not(cv32a6)
-      files:
-      - core/include/cv64a6_imacfd_sv39_config_pkg.sv
-    - target: cv32a6
-      files:
-      - core/include/cv32a6_imac_sv0_config_pkg.sv
-    - core/include/riscv_pkg.sv
-    - core/include/ariane_pkg.sv
-    - core/include/std_cache_pkg.sv
-    - core/include/wt_cache_pkg.sv
-    - core/include/ariane_axi_pkg.sv
+    - include/riscv_pkg.sv
+    - include/ariane_pkg.sv
+    - include/wt_cache_pkg.sv
+    - include/ariane_axi_pkg.sv
+    - include/std_cache_pkg.sv
     # Stand-alone source files
-    - core/ariane.sv
-    - core/serdiv.sv
-    - core/ariane_regfile_ff.sv
-    - core/amo_buffer.sv
-    - core/id_stage.sv
-    - core/branch_unit.sv
-    - core/instr_realign.sv
-    - core/load_store_unit.sv
-    - core/controller.sv
-    - core/issue_stage.sv
-    - core/re_name.sv
-    - core/csr_buffer.sv
-    - core/mmu_sv32/cva6_tlb_sv32.sv
-    - core/mmu_sv39/tlb.sv
-    - core/decoder.sv
-    - core/scoreboard.sv
-    - core/perf_counters.sv
-    - core/store_unit.sv
-    - core/axi_adapter.sv
-    - core/fpu_wrap.sv
-    - core/csr_regfile.sv
-    - core/commit_stage.sv
-    - core/alu.sv
-    - core/multiplier.sv
-    - core/store_buffer.sv
-    - core/compressed_decoder.sv
-    - core/axi_shim.sv
-    - core/ex_stage.sv
-    - core/mmu_sv39/mmu.sv
-    - core/mmu_sv39/ptw.sv
-    - core/mult.sv
-#    - core/mmu_sv32/cva6_mmu_sv32.sv
-#    - core/mmu_sv32/cva6_ptw_sv32.sv
-    - core/load_unit.sv
-    - core/issue_read_operands.sv
-    - core/pmp/src/pmp_entry.sv
-    - core/pmp/src/pmp.sv
-    - core/frontend/frontend.sv
-    - core/frontend/instr_scan.sv
-    - core/frontend/instr_queue.sv
-    - core/frontend/bht.sv
-    - core/frontend/btb.sv
-    - core/frontend/ras.sv
-    - core/cache_subsystem/tag_cmp.sv
-    - core/cache_subsystem/cache_ctrl.sv
-    - core/cache_subsystem/amo_alu.sv
-    - core/cache_subsystem/wt_axi_adapter.sv
-    - core/cache_subsystem/wt_dcache_ctrl.sv
-    - core/cache_subsystem/wt_cache_subsystem.sv
-    - core/cache_subsystem/wt_dcache_missunit.sv
-    - core/cache_subsystem/cva6_icache.sv
-    - core/cache_subsystem/wt_dcache_wbuffer.sv
-    - core/cache_subsystem/wt_l15_adapter.sv
-    - core/cache_subsystem/wt_dcache_mem.sv
-    - core/cache_subsystem/cva6_icache_axi_wrapper.sv
-    - core/cache_subsystem/std_cache_subsystem.sv
-    - core/cache_subsystem/wt_dcache.sv
+    - src/util/SyncSpRamBeNx64.sv
+    - src/util/sram.sv
+    - src/ariane.sv
+    - src/serdiv.sv
+    - src/ariane_regfile_ff.sv
+    - src/amo_buffer.sv
+    - src/id_stage.sv
+    - src/branch_unit.sv
+    - src/instr_realign.sv
+    - src/load_store_unit.sv
+    - src/controller.sv
+    - src/issue_stage.sv
+    - src/re_name.sv
+    - src/csr_buffer.sv
+    - src/tlb.sv
+    - src/decoder.sv
+    - src/scoreboard.sv
+    - src/perf_counters.sv
+    - src/store_unit.sv
+    - src/axi_adapter.sv
+    - src/fpu_wrap.sv
+    - src/csr_regfile.sv
+    - src/commit_stage.sv
+    - src/alu.sv
+    - src/multiplier.sv
+    - src/store_buffer.sv
+    - src/compressed_decoder.sv
+    - src/axi_shim.sv
+    - src/ex_stage.sv
+    - src/mmu.sv
+    - src/ptw.sv
+    - src/mult.sv
+    - src/load_unit.sv
+    - src/issue_read_operands.sv
+    - src/pmp/src/pmp_entry.sv
+    - src/pmp/src/pmp.sv
+    - src/frontend/frontend.sv
+    - src/frontend/instr_scan.sv
+    - src/frontend/instr_queue.sv
+    - src/frontend/bht.sv
+    - src/frontend/btb.sv
+    - src/frontend/ras.sv
+    - src/cache_subsystem/tag_cmp.sv
+    - src/cache_subsystem/cache_ctrl.sv
+    - src/cache_subsystem/amo_alu.sv
+    - src/cache_subsystem/wt_axi_adapter.sv
+    - src/cache_subsystem/wt_dcache_ctrl.sv
+    - src/cache_subsystem/wt_cache_subsystem.sv
+    - src/cache_subsystem/wt_dcache_missunit.sv
+    - src/cache_subsystem/cva6_icache.sv
+    - src/cache_subsystem/wt_dcache_wbuffer.sv
+    - src/cache_subsystem/wt_l15_adapter.sv
+    - src/cache_subsystem/wt_dcache_mem.sv
+    - src/cache_subsystem/miss_handler.sv
+    - src/cache_subsystem/std_nbdcache.sv
+    - src/cache_subsystem/cva6_icache_axi_wrapper.sv
+    - src/cache_subsystem/std_cache_subsystem.sv
+    - src/cache_subsystem/wt_dcache.sv
+  - include_dirs:
+        - src/util
+    target: not(synthesis)
+    files:
+      - include/instr_tracer_pkg.sv
+      - src/util/instr_tracer.sv
+      - src/util/instr_tracer_if.sv
