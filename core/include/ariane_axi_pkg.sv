@@ -21,7 +21,7 @@ package ariane_axi;
     typedef enum logic { SINGLE_REQ, CACHE_LINE_REQ } ad_req_t;
 
     localparam IdWidth   = 5;
-    localparam IdWidthSlave = 7;
+    localparam IdWidthSlave = 8;
     localparam UserWidth = 1;
     localparam AddrWidth = 64;
     localparam DataWidth = 64;
