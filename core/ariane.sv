@@ -65,6 +65,7 @@ module ariane import ariane_pkg::*; #(
   riscv::priv_lvl_t           priv_lvl;
   logic                       v;
   exception_t                 ex_commit; // exception from commit stage
+  exception_t                 ex_cfi;    // exception from cfi stage
   bp_resolve_t                resolved_branch;
   logic [riscv::VLEN-1:0]     pc_commit;
   logic                       eret;
@@ -242,6 +243,7 @@ module ariane import ariane_pkg::*; #(
   logic                     dcache_flush_ack_cache_ctrl;
   logic                     set_debug_pc;
   logic                     flush_commit;
+  logic                     cfi_wait_cfi_controller;
 
   icache_areq_i_t           icache_areq_ex_cache;
   icache_areq_o_t           icache_areq_cache_ex;
@@ -531,6 +533,20 @@ module ariane import ariane_pkg::*; #(
     .hfence_gvma_o          ( hfence_gvma_commit_controller ),
     .flush_commit_o         ( flush_commit                  ),
     .*
+  );
+
+  // ---------
+  // CFI
+  // ---------
+  cfi_stage #(
+    .NR_COMMIT_PORTS ( NR_COMMIT_PORTS )
+  ) cfi_stage_i (
+    .clk_i        ( clk_i                   ),
+    .rst_ni       ( rst_ni                  ),
+    .commit_sbe_i ( commit_instr_id_commit  ),
+    .commit_ack_i ( commit_ack              ),
+    .cfi_wait_o   ( cfi_wait_cfi_controller ),
+    .cfi_fault_o  ( ex_cfi                  )
   );
 
   // ---------
