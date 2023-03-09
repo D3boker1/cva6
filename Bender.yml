@@ -90,4 +90,6 @@ sources:
     - core/cache_subsystem/wt_dcache.sv
     - core/cfi/cfi_pkg.sv
     - core/cfi/cfi_stage.sv
-    - core/cfi/cfi_scanner.sv
+    - core/cfi/cfi_filter.sv
+    - core/cfi/cfi_queue_ctrl.sv
+    - core/cfi/cfi_backend_dummy.sv

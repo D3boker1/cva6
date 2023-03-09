@@ -28,35 +28,30 @@ module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
     output exception_t                              cfi_fault_o
 );
 
-    cfi_commit_log_t [NR_COMMIT_PORTS-1:0] filter_log;
-    logic            [NR_COMMIT_PORTS-1:0] filter_cfi;
-    logic                                  queue_full;
-    logic                                  queue_empty;
-    logic                                  queue_usage;
-    logic                                  queue_data_in;
-    logic                                  queue_push;
-    logic                                  queue_data_out;
-    logic                                  queue_pop;
+    cfi_log_t [NR_COMMIT_PORTS-1:0] filter_log;
+    logic     [NR_COMMIT_PORTS-1:0] filter_cfi;
+    logic                           queue_full;
+    logic                           queue_empty;
+    logic                           queue_usage;
+    cfi_log_t                       queue_data_in;
+    logic                           queue_push;
+    cfi_log_t                       queue_data_out;
+    logic                           queue_pop;
 
     cfi_filter #(
-        .NR_COMMIT_PORTS(NR_COMMIT_PORTS)
+        .NR_COMMIT_PORTS ( NR_COMMIT_PORTS ),
+        .CHECK_ADDR_START( 'h8000_0000     ),
+        .CHECK_ADDR_LIMIT( 'h9000_0000     )
     ) cfi_filter_i (
         .instr_i    ( commit_sbe_i      ),
-        .flags_m_i  ( 'b1111            ),
-        .flags_h_i  ( 'b0000            ),
-        .flags_s_i  ( 'b0000            ),
-        .flags_u_i  ( 'b0000            ),
+        .flags_m_i  ( 4'b0000           ),
+        .flags_h_i  ( 4'b0000           ),
+        .flags_s_i  ( 4'b0000           ),
+        .flags_u_i  ( 4'b0000           ),
         .priv_lvl_i ( riscv::PRIV_LVL_M ),
         .log_o      ( filter_log        ),
         .cfi_o      ( filter_cfi        )
     );
-
-    logic [NR_COMMIT_PORTS-1:0] filter_cfi2;
-
-    always_comb begin
-        filter_cfi2[0] = filter_cfi[0] && (filter_log[0].addr_pc > 'h80000000);
-        filter_cfi2[1] = filter_cfi[1] && (filter_log[1].addr_pc > 'h80000000);
-    end 
 
     cfi_queue_ctrl #(
         .NR_COMMIT_PORTS ( NR_COMMIT_PORTS )
@@ -64,7 +59,7 @@ module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
         .clk_i        ( clk_i         ),
         .rst_ni       ( rst_ni        ),
         .log_i        ( filter_log    ),
-        .log_cfi_i    ( filter_cfi2   ),
+        .log_cfi_i    ( filter_cfi    ),
         .log_ack_i    ( commit_ack_i  ),
         .queue_full_i ( queue_full    ),
         .queue_push_o ( queue_push    ),
@@ -73,9 +68,9 @@ module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
     );
 
     fifo_v3 #(
-        .FALL_THROUGH ( 1'b1                      ),
-        .DATA_WIDTH   ( $bits(scoreboard_entry_t) ),
-        .DEPTH        ( NR_QUEUE_ENTRIES          )
+        .FALL_THROUGH ( 1'b1               ),
+        .dtype        ( scoreboard_entry_t ),
+        .DEPTH        ( NR_QUEUE_ENTRIES   )
     ) cfi_queue_i (
         .clk_i      ( clk_i          ),
         .rst_ni     ( rst_ni         ),

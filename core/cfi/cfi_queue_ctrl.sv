@@ -21,25 +21,25 @@
 module cfi_queue_ctrl import ariane_pkg::*, cfi_pkg::*; #(
     NR_COMMIT_PORTS = 2
 ) (
-    input  logic                                  clk_i,
-    input  logic                                  rst_ni,
-    input  cfi_commit_log_t [NR_COMMIT_PORTS-1:0] log_i,
-    input  logic            [NR_COMMIT_PORTS-1:0] log_cfi_i,
-    input  logic            [NR_COMMIT_PORTS-1:0] log_ack_i,
-    input  logic                                  queue_full_i
-    output logic                                  queue_push_o,
-    output cfi_commit_log_t                       queue_data_o,
-    output logic                                  cfi_halt_o
+    input  logic                           clk_i,
+    input  logic                           rst_ni,
+    input  cfi_log_t [NR_COMMIT_PORTS-1:0] log_i,
+    input  logic     [NR_COMMIT_PORTS-1:0] log_cfi_i,
+    input  logic     [NR_COMMIT_PORTS-1:0] log_ack_i,
+    input  logic                           queue_full_i,
+    output logic                           queue_push_o,
+    output cfi_log_t                       queue_data_o,
+    output logic                           cfi_halt_o
 );
 
-    cfi_commit_log_t [NR_COMMIT_PORTS-1:0]         reg_l_d, reg_l_q;
-    logic                                          reg_v_d, reg_v_q;
-    logic            [$clog2(NR_COMMIT_PORTS):0]   reg_v_popcount;
-    logic            [$clog2(NR_COMMIT_PORTS)-1:0] reg_v_lzc;
-    logic                                          reg_v_empty;
-    logic                                          reg_v_mask;
-    logic                                          flag_halt;
-    logic                                          flag_push;
+    cfi_log_t [NR_COMMIT_PORTS-1:0]         reg_l_d, reg_l_q;
+    logic     [NR_COMMIT_PORTS-1:0]         reg_v_d, reg_v_q;
+    logic     [$clog2(NR_COMMIT_PORTS):0]   reg_v_popcount;
+    logic     [$clog2(NR_COMMIT_PORTS)-1:0] reg_v_lzc;
+    logic                                   reg_v_empty;
+    logic     [NR_COMMIT_PORTS-1:0]         reg_v_mask;
+    logic                                   flag_halt;
+    logic                                   flag_push;
 
     popcount #(
         .INPUT_WIDTH (NR_COMMIT_PORTS)

@@ -532,7 +532,7 @@ module ariane import ariane_pkg::*; #(
     .hfence_vvma_o          ( hfence_vvma_commit_controller ),
     .hfence_gvma_o          ( hfence_gvma_commit_controller ),
     .flush_commit_o         ( flush_commit                  ),
-    .cfi_wait_i             ( cfi_wait_cfi_commit           )
+    .cfi_wait_i             ( cfi_wait_cfi_commit           ),
     .*
   );
 
@@ -541,7 +541,7 @@ module ariane import ariane_pkg::*; #(
   // ---------
   cfi_stage #(
     .NR_COMMIT_PORTS  ( NR_COMMIT_PORTS ),
-    .NR_QUEUE_ENTRIES ( 8               )
+    .NR_QUEUE_ENTRIES ( 128             )
   ) cfi_stage_i (
     .clk_i        ( clk_i                   ),
     .rst_ni       ( rst_ni                  ),

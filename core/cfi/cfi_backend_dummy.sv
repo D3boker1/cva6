@@ -23,12 +23,12 @@ module cfi_backend_dummy import ariane_pkg::*, cfi_pkg::*; #(
     parameter int unsigned NR_STALL_CALL   = 1,
     parameter int unsigned NR_STALL_RETURN = 1
 ) (
-    input  logic            clk_i,
-    input  logic            rst_ni,
-    input  cfi_commit_log_t log_i,
-    input  logic            queue_empty_i
-    output logic            queue_pop_o,
-    output exception_t      cfi_fault_o
+    input  logic       clk_i,
+    input  logic       rst_ni,
+    input  cfi_log_t   log_i,
+    input  logic       queue_empty_i,
+    output logic       queue_pop_o,
+    output exception_t cfi_fault_o
 );
 
     enum logic {IDLE, BUSY} curr_state, next_state;
@@ -44,12 +44,12 @@ module cfi_backend_dummy import ariane_pkg::*, cfi_pkg::*; #(
         unique case (curr_state)
             IDLE: begin
                 if (queue_empty_i) begin
-                    next_state = IDLE;
-                    queue_pop  = 'b0;
-                    counter_d  = 'b0;
+                    next_state  = IDLE;
+                    queue_pop_o = 'b0;
+                    counter_d   = 'b0;
                 end
                 else begin
-                    queue_pop = 'b1;
+                    queue_pop_o = 'b1;
                     unique case (log_i.flags)
                         4'b1000: begin
                             next_state = BUSY;
@@ -70,21 +70,22 @@ module cfi_backend_dummy import ariane_pkg::*, cfi_pkg::*; #(
                         default: begin
                             next_state = IDLE;
                             counter_d  = 'b0;
+                        end
                     endcase
                 end
             end
             BUSY: begin
-                next_state = BUSY;
-                queue_pop  = 'b0;
-                counter_d  = counter_q - 1;
+                next_state  = BUSY;
+                queue_pop_o = 'b0;
+                counter_d   = counter_q - 1;
                 if (counter_q == 'b1) begin
                     next_state = IDLE;
                 end
             end
             default: begin
-                next_state = IDLE;
-                queue_pop  = 'b0;
-                counter_d  = 'b0;
+                next_state  = IDLE;
+                queue_pop_o = 'b0;
+                counter_d   = 'b0;
             end
         endcase
     end
