@@ -23,9 +23,13 @@ package cfi_pkg;
         logic                   is_jump;
         logic                   is_call;
         logic                   is_return;
+    } cfi_flags_t;
+
+    typedef struct packed {
+        cfi_flags_t             flags;
         logic [riscv::VLEN-1:0] addr_pc;
         logic [riscv::VLEN-1:0] addr_npc;
         logic [riscv::VLEN-1:0] addr_target;
-    } cfi_commit_log_t;
+    } cfi_log_t;
     
 endpackage

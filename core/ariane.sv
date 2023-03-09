@@ -243,7 +243,7 @@ module ariane import ariane_pkg::*; #(
   logic                     dcache_flush_ack_cache_ctrl;
   logic                     set_debug_pc;
   logic                     flush_commit;
-  logic                     cfi_wait_cfi_controller;
+  logic                     cfi_wait_cfi_commit;
 
   icache_areq_i_t           icache_areq_ex_cache;
   icache_areq_o_t           icache_areq_cache_ex;
@@ -532,6 +532,7 @@ module ariane import ariane_pkg::*; #(
     .hfence_vvma_o          ( hfence_vvma_commit_controller ),
     .hfence_gvma_o          ( hfence_gvma_commit_controller ),
     .flush_commit_o         ( flush_commit                  ),
+    .cfi_wait_i             ( cfi_wait_cfi_commit           )
     .*
   );
 
@@ -539,13 +540,14 @@ module ariane import ariane_pkg::*; #(
   // CFI
   // ---------
   cfi_stage #(
-    .NR_COMMIT_PORTS ( NR_COMMIT_PORTS )
+    .NR_COMMIT_PORTS  ( NR_COMMIT_PORTS ),
+    .NR_QUEUE_ENTRIES ( 8               )
   ) cfi_stage_i (
     .clk_i        ( clk_i                   ),
     .rst_ni       ( rst_ni                  ),
     .commit_sbe_i ( commit_instr_id_commit  ),
     .commit_ack_i ( commit_ack              ),
-    .cfi_wait_o   ( cfi_wait_cfi_controller ),
+    .cfi_wait_o   ( cfi_wait_cfi_commit ),
     .cfi_fault_o  ( ex_cfi                  )
   );
 
