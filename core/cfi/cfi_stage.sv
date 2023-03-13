@@ -13,7 +13,8 @@
  *
  * This module wraps the Control-Flow Integrity logic for the CVA6 core.
  *
- * Author: Emanuele Parisi <emanuele.parisi@unibo.it> 
+ * Authors: Emanuele Parisi <emanuele.parisi@unibo.it>
+ *          Simone Manoni   <simone.manoni3@unibo.it> 
  */
 
 module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
@@ -25,7 +26,11 @@ module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
     input  scoreboard_entry_t [NR_COMMIT_PORTS-1:0] commit_sbe_i,
     input  logic              [NR_COMMIT_PORTS-1:0] commit_ack_i,
     output logic                                    cfi_wait_o,
-    output exception_t                              cfi_fault_o
+    output exception_t                              cfi_fault_o,
+    
+//-- AXI Ports used to write the CFI data on the xbar and then on the scmi mailbox
+    output ariane_axi::req_t             	        axi_req_o,
+    input  ariane_axi::resp_t                       axi_rsp_i
 );
 
     cfi_log_t [NR_COMMIT_PORTS-1:0]          filter_log;
@@ -85,17 +90,15 @@ module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
         .pop_i      ( queue_pop      )
     );
 
-    cfi_backend_dummy #(
-        .NR_STALL_BRANCH ( 5 ),
-        .NR_STALL_JUMP   ( 5 ),
-        .NR_STALL_CALL   ( 5 ),
-        .NR_STALL_RETURN ( 5 )
-    ) cfi_backend_dummy_i (
+    cfi_backend              cfi_backend_i 
+    (
         .clk_i             ( clk_i          ),
         .rst_ni            ( rst_ni         ),
         .log_i             ( queue_data_out ),
         .queue_empty_i     ( queue_empty    ),
         .queue_pop_o       ( queue_pop      ),
+	    .axi_req_o         ( axi_req_o      ),
+	    .axi_rsp_i         ( axi_rsp_i	    ),     
         .cfi_fault_o       ( cfi_fault_o    )
     );
 
