@@ -44,7 +44,7 @@ module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
         .CHECK_ADDR_LIMIT( 'h9000_0000     )
     ) cfi_filter_i (
         .instr_i    ( commit_sbe_i      ),
-        .flags_m_i  ( 4'b0000           ),
+        .flags_m_i  ( 4'b0011           ),
         .flags_h_i  ( 4'b0000           ),
         .flags_s_i  ( 4'b0000           ),
         .flags_u_i  ( 4'b0000           ),
