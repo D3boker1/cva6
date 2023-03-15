@@ -88,10 +88,10 @@ module cfi_filter import ariane_pkg::*, cfi_pkg::*; #(
             // Check if the current control-flow transfer type should be checked.
             cfi_check_flags[i] = 'b0;
             unique case (priv_lvl_i)
-                riscv::PRIV_LVL_M:  cfi_check_flags[i] = |(flags_m_i && log_o[i].flags);
-                riscv::PRIV_LVL_HS: cfi_check_flags[i] = |(flags_h_i && log_o[i].flags);
-                riscv::PRIV_LVL_S:  cfi_check_flags[i] = |(flags_s_i && log_o[i].flags);
-                default:            cfi_check_flags[i] = |(flags_u_i && log_o[i].flags);
+                riscv::PRIV_LVL_M:  cfi_check_flags[i] = |(flags_m_i & log_o[i].flags);
+                riscv::PRIV_LVL_HS: cfi_check_flags[i] = |(flags_h_i & log_o[i].flags);
+                riscv::PRIV_LVL_S:  cfi_check_flags[i] = |(flags_s_i & log_o[i].flags);
+                default:            cfi_check_flags[i] = |(flags_u_i & log_o[i].flags);
             endcase
 
             // Check if the current control-flow transfer PC should be checked.
