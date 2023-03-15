@@ -68,9 +68,9 @@ module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
     );
 
     fifo_v3 #(
-        .FALL_THROUGH ( 1'b1               ),
-        .dtype        ( scoreboard_entry_t ),
-        .DEPTH        ( NR_QUEUE_ENTRIES   )
+        .FALL_THROUGH ( 1'b1             ),
+        .dtype        ( cfi_log_t        ),
+        .DEPTH        ( NR_QUEUE_ENTRIES )
     ) cfi_queue_i (
         .clk_i      ( clk_i          ),
         .rst_ni     ( rst_ni         ),
