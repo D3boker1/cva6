@@ -87,7 +87,7 @@ module cfi_queue_ctrl import ariane_pkg::*, cfi_pkg::*; #(
             end
         end
         else begin
-            reg_v_d = log_cfi_i && log_ack_i;
+            reg_v_d = log_cfi_i & log_ack_i;
         end
     end
 

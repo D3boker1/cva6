@@ -28,15 +28,15 @@ module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
     output exception_t                              cfi_fault_o
 );
 
-    cfi_log_t [NR_COMMIT_PORTS-1:0] filter_log;
-    logic     [NR_COMMIT_PORTS-1:0] filter_cfi;
-    logic                           queue_full;
-    logic                           queue_empty;
-    logic                           queue_usage;
-    cfi_log_t                       queue_data_in;
-    logic                           queue_push;
-    cfi_log_t                       queue_data_out;
-    logic                           queue_pop;
+    cfi_log_t [NR_COMMIT_PORTS-1:0]          filter_log;
+    logic     [NR_COMMIT_PORTS-1:0]          filter_cfi;
+    logic                                    queue_full;
+    logic                                    queue_empty;
+    logic     [$clog2(NR_QUEUE_ENTRIES)-1:0] queue_usage;
+    cfi_log_t                                queue_data_in;
+    logic                                    queue_push;
+    cfi_log_t                                queue_data_out;
+    logic                                    queue_pop;
 
     cfi_filter #(
         .NR_COMMIT_PORTS ( NR_COMMIT_PORTS ),
