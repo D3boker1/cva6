@@ -65,7 +65,7 @@ module cfi_filter import ariane_pkg::*, cfi_pkg::*; #(
             log_o[i].flags.branch = op_branch[i];
             log_o[i].flags.jump   = (op_jalr[i] || op_jal[i]) && !rs1_x1_x5[i] && !rd_x1_x5[i];
             log_o[i].flags.call   = (op_jalr[i] || op_jal[i]) && rd_x1_x5[i];
-            log_o[i].flags.return = op_jalr[i] && rs1_x1_x5[i];
+            log_o[i].flags.ret    = op_jalr[i] && rs1_x1_x5[i];
             log_o[i].addr_pc      = instr_i[i].pc;
             log_o[i].addr_npc     = instr_i[i].result;
             log_o[i].addr_target  = instr_i[i].bp.predict_address;

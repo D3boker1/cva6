@@ -22,7 +22,7 @@ package cfi_pkg;
         logic branch;
         logic jump;
         logic call;
-        logic return;
+        logic ret;
     } cfi_flags_t;
 
     typedef struct packed {
