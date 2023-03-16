@@ -59,11 +59,11 @@ module cfi_backend_dummy import ariane_pkg::*, cfi_pkg::*; #(
                             next_state = BUSY;
                             counter_d  = NR_STALL_JUMP;
                         end
-                        4'b0110: begin
+                        4'b0010: begin
                             next_state = BUSY;
                             counter_d  = NR_STALL_CALL;
                         end
-                        4'b0101: begin
+                        4'b0001: begin
                             next_state = BUSY;
                             counter_d  = NR_STALL_RETURN;
                         end

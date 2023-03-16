@@ -19,10 +19,10 @@
 package cfi_pkg;
 
     typedef struct packed {
-        logic                   is_branch;
-        logic                   is_jump;
-        logic                   is_call;
-        logic                   is_return;
+        logic branch;
+        logic jump;
+        logic call;
+        logic return;
     } cfi_flags_t;
 
     typedef struct packed {
@@ -33,3 +33,4 @@ package cfi_pkg;
     } cfi_log_t;
     
 endpackage
+

@@ -34,74 +34,67 @@ module cfi_filter import ariane_pkg::*, cfi_pkg::*; #(
     output logic              [NR_COMMIT_PORTS-1:0] cfi_o
 );
 
-    logic [NR_COMMIT_PORTS-1:0] instr_branch;
-    logic [NR_COMMIT_PORTS-1:0] instr_jal;
-    logic [NR_COMMIT_PORTS-1:0] instr_jalr;
-    logic [NR_COMMIT_PORTS-1:0] instr_rd_x1_x5;
-    logic [NR_COMMIT_PORTS-1:0] instr_rs_x1_x5;
-    logic [NR_COMMIT_PORTS-1:0] cfi_check_valid;
-    logic [NR_COMMIT_PORTS-1:0] cfi_check_flags;
-    logic [NR_COMMIT_PORTS-1:0] cfi_check_addr;
+    logic [NR_COMMIT_PORTS-1:0] op_branch;
+    logic [NR_COMMIT_PORTS-1:0] op_jal;
+    logic [NR_COMMIT_PORTS-1:0] op_jalr;
+    logic [NR_COMMIT_PORTS-1:0] rd_x1_x5;
+    logic [NR_COMMIT_PORTS-1:0] rs1_x1_x5;
+    logic [NR_COMMIT_PORTS-1:0] check_valid;
+    logic [NR_COMMIT_PORTS-1:0] check_flags;
+    logic [NR_COMMIT_PORTS-1:0] check_addr;
 
     for (genvar i=0; i<NR_COMMIT_PORTS; i++) begin
         always_comb begin
-            // Detect control flow transfer type.
-            instr_branch[i]    = 'b0;
-            instr_jal[i]       = 'b0;
-            instr_jalr[i]      = 'b0;
+            // Get control flow operation.
+            op_branch[i]    = 'b0;
+            op_jal[i]       = 'b0;
+            op_jalr[i]      = 'b0;
             if (instr_i[i].fu == CTRL_FLOW) begin
                 unique case (instr_i[i].op)
-                    EQ, NE, LTS, GES, LTU, GEU: instr_branch[i] = 'b1;
-                    JALR:                       instr_jalr[i]   = 'b1;
-                    default:                    instr_jal[i]    = 'b1;
+                    EQ, NE, LTS, GES, LTU, GEU: op_branch[i] = 'b1;
+                    JALR:                       op_jalr[i]   = 'b1;
+                    default:                    op_jal[i]    = 'b1;
                 endcase
             end
 
-            // Detect if the destination/source registers are x1 or x5.
-            instr_rs_x1_x5[i] = (instr_i[i].rs1 == 5'd1) || (instr_i[i].rs1 == 5'd5);
-            instr_rd_x1_x5[i] = (instr_i[i].rd == 5'd1) || (instr_i[i].rd == 5'd5);        
+            // Get instruction RD and RS1 registers.
+            rs1_x1_x5[i] = (instr_i[i].rs1 == 5'd1) || (instr_i[i].rs1 == 5'd5);
+            rd_x1_x5[i]  = (instr_i[i].rd == 5'd1) || (instr_i[i].rd == 5'd5);
 
-            // Extract CFI log from scoreboard entry.
-            log_o[i].flags.is_branch = 'b0;
-            log_o[i].flags.is_jump   = 'b0;
-            log_o[i].flags.is_call   = 'b0;
-            log_o[i].flags.is_return = 'b0;
-            log_o[i].addr_pc         = 'b0;
-            log_o[i].addr_npc        = 'b0;
-            log_o[i].addr_target     = 'b0;
-            if (instr_i[i].fu == CTRL_FLOW) begin
-                log_o[i].flags.is_branch = instr_branch[i];
-                log_o[i].flags.is_jump   = instr_jal[i] || instr_jalr[i];
-                log_o[i].flags.is_call   = (instr_jal[i] || instr_jalr[i]) && instr_rd_x1_x5[i];
-                log_o[i].flags.is_return = instr_jalr[i] && instr_rs_x1_x5[i];
-                log_o[i].addr_pc         = instr_i[i].pc;
-                log_o[i].addr_npc        = instr_i[i].result;
-                log_o[i].addr_target     = instr_i[i].bp.predict_address;
-            end
+            // Compute CFI log.
+            log_o[i].flags.branch = op_branch[i];
+            log_o[i].flags.jump   = (op_jalr[i] || op_jal[i]) && !rs1_x1_x5[i] && !rd_x1_x5[i];
+            log_o[i].flags.call   = (op_jalr[i] || op_jal[i]) && rd_x1_x5[i];
+            log_o[i].flags.return = op_jalr[i] && rs1_x1_x5[i];
+            log_o[i].addr_pc      = instr_i[i].pc;
+            log_o[i].addr_npc     = instr_i[i].result;
+            log_o[i].addr_target  = instr_i[i].bp.predict_address;
 
             // Check if the current control-flow transfer instruction is valid.
-            cfi_check_valid[i] = 'b0;
+            check_valid[i] = 'b0;
             if (instr_i[i].valid) begin
-                cfi_check_valid[i] = 'b1;
+                check_valid[i] = 'b1;
             end
 
-            // Check if the current control-flow transfer type should be checked.
-            cfi_check_flags[i] = 'b0;
+            // Check if the current control-flow transfer type should be ignored.
+            check_flags[i] = 'b0;
             unique case (priv_lvl_i)
-                riscv::PRIV_LVL_M:  cfi_check_flags[i] = |(flags_m_i & log_o[i].flags);
-                riscv::PRIV_LVL_HS: cfi_check_flags[i] = |(flags_h_i & log_o[i].flags);
-                riscv::PRIV_LVL_S:  cfi_check_flags[i] = |(flags_s_i & log_o[i].flags);
-                default:            cfi_check_flags[i] = |(flags_u_i & log_o[i].flags);
+                riscv::PRIV_LVL_M:  check_flags[i] = |(flags_m_i & log_o[i].flags);
+                riscv::PRIV_LVL_HS: check_flags[i] = |(flags_h_i & log_o[i].flags);
+                riscv::PRIV_LVL_S:  check_flags[i] = |(flags_s_i & log_o[i].flags);
+                default:            check_flags[i] = |(flags_u_i & log_o[i].flags);
             endcase
 
-            // Check if the current control-flow transfer PC should be checked.
-            cfi_check_addr[i] = 'b0;
+            // Check if the current control-flow transfer PC should be ignored.
+            check_addr[i] = 'b0;
             if (instr_i[i].pc >= CHECK_ADDR_START && instr_i[i].pc < CHECK_ADDR_LIMIT) begin
-                cfi_check_addr[i] = 'b1;
+                check_addr[i] = 'b1;
             end
 
-            cfi_o[i] = cfi_check_valid[i] && cfi_check_flags[i] && cfi_check_addr[i];
+            // Compute CFI flag.
+            cfi_o[i] = check_valid[i] && check_flags[i] && check_addr[i];
         end
     end
 
 endmodule
+
