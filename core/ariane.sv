@@ -541,7 +541,7 @@ module ariane import ariane_pkg::*; #(
   // ---------
   cfi_stage #(
     .NR_COMMIT_PORTS  ( NR_COMMIT_PORTS ),
-    .NR_QUEUE_ENTRIES ( 128             )
+    .NR_QUEUE_ENTRIES ( 4               )
   ) cfi_stage_i (
     .clk_i        ( clk_i                   ),
     .rst_ni       ( rst_ni                  ),
