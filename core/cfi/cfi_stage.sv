@@ -40,7 +40,7 @@ module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
 
     cfi_filter #(
         .NR_COMMIT_PORTS ( NR_COMMIT_PORTS ),
-        .CHECK_ADDR_START( 'h8000_2000     ),
+        .CHECK_ADDR_START( 'h8000_0000     ),
         .CHECK_ADDR_LIMIT( 'h9000_0000     )
     ) cfi_filter_i (
         .instr_i    ( commit_sbe_i      ),
