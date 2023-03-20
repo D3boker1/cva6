@@ -73,22 +73,22 @@ module cfi_backend import ariane_pkg::*, cfi_pkg::*;
                     fsm_log_wrt_n_state = WRITE_ADDR;                 
 
             WRITE_DATA:
-	        if(transaction_counter == 3'b111)
-		    fsm_log_wrt_n_state = WRITE_DOORBELL_ADDR;
+	            if(transaction_counter == 3'b111)
+		            fsm_log_wrt_n_state = WRITE_DOORBELL_ADDR;
                 else
-		    fsm_log_wrt_n_state = WRITE;     
+		            fsm_log_wrt_n_state = WRITE_DATA;     
 
 	   WRITE_DOORBELL_ADDR:
 	       if(axi_rsp_i.aw_ready)
  	           fsm_log_wrt_n_state = WRITE_DOORBELL_DATA;
 	       else
-		   fsm_log_wrt_n_state = WRITE_DOORBELL_ADDR;
+		       fsm_log_wrt_n_state = WRITE_DOORBELL_ADDR;
 
 	   WRITE_DOORBELL_DATA:
                if(axi_rsp_i.w_ready)
-	           fsm_log_wrt_n_state = IDLE;
+	               fsm_log_wrt_n_state = IDLE;
                else
-		   fsm_log_wrt_n_state = WRITEWRITE_DOORBELL_DATA;    
+		           fsm_log_wrt_n_state = WRITE_DOORBELL_DATA;    
         endcase 
     end
 
