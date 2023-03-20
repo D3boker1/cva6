@@ -92,4 +92,4 @@ sources:
     - core/cfi/cfi_stage.sv
     - core/cfi/cfi_filter.sv
     - core/cfi/cfi_queue_ctrl.sv
-    - core/cfi/cfi_backend_dummy.sv
+    - core/cfi/cfi_backend.sv
