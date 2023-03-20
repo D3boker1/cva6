@@ -555,7 +555,7 @@ module ariane import ariane_pkg::*; #(
     .cfi_wait_o   ( cfi_wait_cfi_commit     ),
     .cfi_fault_o  ( ex_cfi                  ),
     .axi_req_o    ( cfi_stage_axi_req       ),
-    .axi_rsp_i    ( cfi_stage_axi_rsp       ),
+    .axi_rsp_i    ( cfi_stage_axi_rsp       )
   );
 
   axi_mux #(
@@ -564,8 +564,8 @@ module ariane import ariane_pkg::*; #(
       .mst_req_t       (ariane_axi::req_t ),
       .mst_rsp_t       (ariane_axi::resp_t),
       .NoSlvPorts      (             32'd2)
-  ) cva6_axi_mux_i {
-      .clk_i	       (clk_i             ),    // Clock
+  ) cva6_axi_mux_i (
+      .clk_i	         (clk_i             ),    // Clock
       .rst_ni          (rst_ni            ),    // Asynchronous reset active low
       .test_i          (1'b0              ),   // Test Mode enable
   // slave ports (AXI inputs), connect master modules here
