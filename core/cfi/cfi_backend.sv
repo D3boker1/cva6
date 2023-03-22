@@ -35,7 +35,7 @@ module cfi_backend import ariane_pkg::*, cfi_pkg::*;
 );
 
 //------------------------------------------------------------- Mailbox Write --------------------------------------------------------------//
-    enum logic {IDLE, WRITE_ADDR, WRITE_DATA, WRITE_DOORBELL_ADDR, WRITE_DOORBELL_DATA} fsm_log_wrt_c_state, fsm_log_wrt_n_state; 
+    enum logic [2:0] {IDLE, WRITE_ADDR, WRITE_DATA, WRITE_DOORBELL_ADDR, WRITE_DOORBELL_DATA} fsm_log_wrt_c_state, fsm_log_wrt_n_state; 
     logic [7:0] transaction_counter; 
     logic en_transaction_count, rst_n_trans_count;
    
@@ -102,7 +102,7 @@ module cfi_backend import ariane_pkg::*, cfi_pkg::*;
             WRITE_ADDR: begin
 	        en_transaction_count = 1'b1;   
                 axi_req_o.aw.burst   = 2'b1;
-		axi_req_o.aw.lenght  = 8'd7;
+		axi_req_o.aw.len  = 8'd7;
 		axi_req_o.aw.size    = 3'd4;            
                 axi_req_o.aw.addr    = 64'h0000000010404000; //-- insert base_addr of the mailbox
                 axi_req_o.aw_valid   = 1'b1;       
@@ -110,7 +110,7 @@ module cfi_backend import ariane_pkg::*, cfi_pkg::*;
             
             WRITE_DATA: begin
                 axi_req_o.w_valid    = 1'b1;
-                axi_req_o.w          = log_i[transaction_counter << 5 + 32 : transaction_counter << 5];
+                axi_req_o.w          = log_i[transaction_counter << 5 +: 32];
                 
 		if(axi_rsp_i.w_ready)
 		    en_transaction_count = 1'b1;
@@ -118,7 +118,7 @@ module cfi_backend import ariane_pkg::*, cfi_pkg::*;
 	    
 	    WRITE_DOORBELL_ADDR: begin
            	axi_req_o.aw.burst   = 2'b0;
-		axi_req_o.aw.lenght  = 8'd1;
+		axi_req_o.aw.len  = 8'd1;
 		axi_req_o.aw.size    = 3'd40;
  		axi_req_o.aw.addr    = 64'h0000000010404020;
                 axi_req_o.aw_valid   = 1'b1;
