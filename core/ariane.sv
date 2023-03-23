@@ -54,8 +54,11 @@ module ariane import ariane_pkg::*; #(
 `else
   // memory side, AXI Master
   output ariane_axi::req_t             axi_req_o,
-  input  ariane_axi::resp_t            axi_resp_i
+  input  ariane_axi::resp_t            axi_resp_i,
 `endif
+  output ariane_axi::req_t             cfi_axi_req_o,
+  input  ariane_axi::resp_t            cfi_axi_rsp_i
+
 );
 
   // ------------------------------------------
@@ -66,11 +69,6 @@ module ariane import ariane_pkg::*; #(
   logic                       v;
   exception_t                 ex_commit; // exception from commit stage
   exception_t                 ex_cfi;    // exception from cfi stage
-  ariane_axi::req_t           cfi_stage_axi_req; // axi req channel from CFI stage
-  ariane_axi::resp_t          cfi_stage_axi_rsp; // axi rsp channel to CFI stage
-  ariane_axi::req_t           ariane_axi_req   ; // axi req channel from ariane
-  ariane_axi::resp_t          ariane_axi_resp  ; // axi req channel to ariane
-
   bp_resolve_t                resolved_branch;
   logic [riscv::VLEN-1:0]     pc_commit;
   logic                       eret;
@@ -554,48 +552,10 @@ module ariane import ariane_pkg::*; #(
     .commit_ack_i ( commit_ack              ),
     .cfi_wait_o   ( cfi_wait_cfi_commit     ),
     .cfi_fault_o  ( ex_cfi                  ),
-    .axi_req_o    ( cfi_stage_axi_req       ),
-    .axi_rsp_i    ( cfi_stage_axi_rsp       )
+    .axi_req_o    (cfi_axi_req_o            ),
+    .axi_rsp_i    (cfi_axi_rsp_i            )
   );
 
-  axi_mux #(
-      .slv_req_t       (ariane_axi::req_t ),
-      .slv_rsp_t       (ariane_axi::resp_t),
-      .mst_req_t       (ariane_axi::req_t ),
-      .mst_rsp_t       (ariane_axi::resp_t),
-      .NoSlvPorts      (             32'd2)
-  ) cva6_axi_mux_i (
-      .clk_i	         (clk_i             ),    // Clock
-      .rst_ni          (rst_ni            ),    // Asynchronous reset active low
-      .test_i          (1'b0              ),   // Test Mode enable
-  // slave ports (AXI inputs), connect master modules here
-      .slv_reqs_i      ({cfi_stage_axi_req, ariane_axi_req}),
-      .slv_resps_o     ({cfi_stage_axi_rsp, ariane_axi_resp}), 
-  // master port (AXI outputs), connect slave modules here
-      .mst_req_o       (axi_req_o          ),
-      .mst_resp_i      (axi_resp_i         )
-  );
-
-/*
- `AXI_ASSIGN_TO_REQ(axi_mux_slave_req[0], cfi_stage_axi_req)
- `AXI_ASSIGN_TO_REQ(axi_mux_slave_req[1], ariane_axi_req   )
- `AXI_ASSIGN_FROM_RSP(cfi_stage_axi_rsp, axi_mux_slave_resp[0])
- `AXI_ASSIGN_FROM_RSP(ariane_axi_resp  , axi_mux_slave_resp[1])
-
-  AXI_BUS #(
-    .AXI_ADDR_WIDTH ( 64 ),
-    .AXI_DATA_WIDTH ( 64 ),
-    .AXI_ID_WIDTH   ( ariane_soc::IdWidth ),
-    .AXI_USER_WIDTH ( 1  )
-  ) axi_mux_slave_req[1:0]();
-
-  AXI_BUS #(
-    .AXI_ADDR_WIDTH ( 64 ),
-    .AXI_DATA_WIDTH ( 64 ),
-    .AXI_ID_WIDTH   ( ariane_soc::IdWidth ),
-    .AXI_USER_WIDTH ( 1  )
-  ) axi_mux_slave_resp[1:0]();
-*/
   // ---------
   // CSR
   // ---------
@@ -773,8 +733,8 @@ module ariane import ariane_pkg::*; #(
     .l15_rtrn_i            ( l15_rtrn_i                  )
 `else
     // memory side
-    .axi_req_o             ( ariane_axi_req              ),
-    .axi_resp_i            ( ariane_axi_resp             )
+    .axi_req_o             ( axi_req_o                   ),
+    .axi_resp_i            ( axi_resp_i                  )
 `endif
   );
 `else
@@ -811,8 +771,8 @@ module ariane import ariane_pkg::*; #(
     .dcache_req_ports_i    ( dcache_req_ports_ex_cache   ),
     .dcache_req_ports_o    ( dcache_req_ports_cache_ex   ),
     // memory side
-    .axi_req_o             ( ariane_axi_req              ),
-    .axi_resp_i            ( ariane_axi_resp             )
+    .axi_req_o             ( axi_req_o                   ),
+    .axi_resp_i            ( axi_resp_i                  )
   );
   assign dcache_commit_wbuffer_not_ni = 1'b1;
 `endif

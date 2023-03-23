@@ -96,9 +96,9 @@ module cfi_stage import ariane_pkg::*, cfi_pkg::*; #(
         .rst_ni            ( rst_ni         ),
         .log_i             ( queue_data_out ),
         .queue_empty_i     ( queue_empty    ),
-        .queue_pop_o       ( queue_pop      ),
-	    .axi_req_o         ( axi_req_o      ),
-	    .axi_rsp_i         ( axi_rsp_i	    ),     
+        .queue_pop_o       ( queue_pop      ),    
+        .axi_req_o         ( axi_req_o      ),
+	    .axi_rsp_i         ( axi_rsp_i	    ), 
         .cfi_fault_o       ( cfi_fault_o    )
     );
 
