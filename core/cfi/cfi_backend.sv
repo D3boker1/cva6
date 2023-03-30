@@ -36,9 +36,17 @@ module cfi_backend import ariane_pkg::*, cfi_pkg::*;
 
 //------------------------------------------------------------- Mailbox Write --------------------------------------------------------------//
     enum logic [2:0] {IDLE, WRITE_ADDR, WRITE_DATA, WRITE_DOORBELL_ADDR, WRITE_DOORBELL_DATA} fsm_log_wrt_c_state, fsm_log_wrt_n_state; 
-    logic [7:0] transaction_counter; 
+    logic [8:0]   transaction_counter; 
+    //logic [255:0] log_i_padded;
+    logic [319:0] log_i_padded;
     logic en_transaction_count, rst_n_trans_count;
-   
+
+    logic [10:0] base_data_addr; 
+    localparam N_TRANS = 9;
+    
+    assign log_i_padded   = {64'd1, 60'd0, log_i};
+    assign base_data_addr = transaction_counter << 5;
+    
 //-- State memory
     always_ff @(posedge clk_i, negedge rst_ni)
         if(!rst_ni) 
@@ -60,77 +68,120 @@ module cfi_backend import ariane_pkg::*, cfi_pkg::*;
     always_comb begin
     	fsm_log_wrt_n_state  = IDLE;
     	unique case (fsm_log_wrt_c_state)
-            IDLE: 
-                if (queue_empty_i) 
-                    fsm_log_wrt_n_state = IDLE;
+        IDLE: 
+            if (queue_empty_i) 
+                fsm_log_wrt_n_state = IDLE;
    	        else
 	            fsm_log_wrt_n_state = WRITE_ADDR;
-        
-            WRITE_ADDR: 
-            	if(axi_rsp_i.aw_ready)
-                    fsm_log_wrt_n_state = WRITE_DATA;
-                else
-                    fsm_log_wrt_n_state = WRITE_ADDR;                 
+    
+        WRITE_ADDR: 
+        	if(axi_rsp_i.aw_ready)
+                fsm_log_wrt_n_state = WRITE_DATA;
+            else
+                fsm_log_wrt_n_state = WRITE_ADDR;                 
 
-            WRITE_DATA:
-	            if(transaction_counter == 3'b111)
-		            fsm_log_wrt_n_state = WRITE_DOORBELL_ADDR;
-                else
-		            fsm_log_wrt_n_state = WRITE_DATA;     
+        WRITE_DATA:
+	        if(transaction_counter == N_TRANS && axi_rsp_i.w_ready)
+		        fsm_log_wrt_n_state = IDLE;
+            else if(axi_rsp_i.w_ready)
+                fsm_log_wrt_n_state = WRITE_ADDR;
+            else
+		        fsm_log_wrt_n_state = WRITE_DATA;     
 
-	   WRITE_DOORBELL_ADDR:
-	       if(axi_rsp_i.aw_ready)
- 	           fsm_log_wrt_n_state = WRITE_DOORBELL_DATA;
-	       else
-		       fsm_log_wrt_n_state = WRITE_DOORBELL_ADDR;
-
-	   WRITE_DOORBELL_DATA:
-               if(axi_rsp_i.w_ready)
-	               fsm_log_wrt_n_state = IDLE;
-               else
-		           fsm_log_wrt_n_state = WRITE_DOORBELL_DATA;    
+	    WRITE_DOORBELL_ADDR:
+	        if(axi_rsp_i.aw_ready)
+ 	            fsm_log_wrt_n_state = WRITE_DOORBELL_DATA;
+            else
+		        fsm_log_wrt_n_state = WRITE_DOORBELL_ADDR;
+ 
+	    WRITE_DOORBELL_DATA:
+            if(axi_rsp_i.w_ready)
+	            fsm_log_wrt_n_state = IDLE;
+            else
+		        fsm_log_wrt_n_state = WRITE_DOORBELL_DATA;    
         endcase 
     end
 
 //-- fsm outputs computation
     always_comb begin
         en_transaction_count = 1'b0;
-	axi_req_o            = '0;
-	rst_n_trans_count    = 1'b1;
-	queue_pop_o          = 1'b0;
+	    axi_req_o            = '0;
+	    rst_n_trans_count    = 1'b1;
+	    queue_pop_o          = 1'b0;
+
+        //-- AXI default values
+        axi_req_o.w_valid    = 1'b0;
+        axi_req_o.w.data     = 64'd0;
+        axi_req_o.w.strb     = 8'd0;
+        axi_req_o.w.last     = 1'b0;
+        axi_req_o.w.user     = 1'b0;
+
+        axi_req_o.aw.burst   = 2'b0;
+        axi_req_o.aw.id      = 5'h0;
+        axi_req_o.aw.size    =   '0;
+        axi_req_o.aw.len     = 8'd0;
+        axi_req_o.aw.lock    = 1'b0;
+        axi_req_o.aw.prot    =   '0;
+        axi_req_o.aw.qos     =   '0;
+        axi_req_o.aw.qos     =   '0;
+        axi_req_o.aw.region  =   '0;
+        axi_req_o.aw.user    =   '0;
+
+        axi_req_o.ar.burst   = 2'b0;
+        axi_req_o.ar.id      = 5'h0;
+        axi_req_o.ar.size    =   '0;
+        axi_req_o.ar.lock    = 1'b0;
+        axi_req_o.ar.prot    =   '0;
+        axi_req_o.ar.qos     =   '0;
+        axi_req_o.ar.qos     =   '0;
+        axi_req_o.ar.region  =   '0;
+        axi_req_o.ar.user    =   '0;
+        
+        axi_req_o.ar_valid   = 1'b0;
+        axi_req_o.r_ready    = 1'b1;
+        axi_req_o.b_ready    = 1'b1;
+    
         unique case (fsm_log_wrt_c_state)        
             WRITE_ADDR: begin
-	        en_transaction_count = 1'b1;   
+	            //en_transaction_count = 1'b1;
+                axi_req_o.aw.id      = 5'd3;   
                 axi_req_o.aw.burst   = 2'b1;
-		axi_req_o.aw.len  = 8'd7;
-		axi_req_o.aw.size    = 3'd4;            
-                axi_req_o.aw.addr    = 64'h0000000010404000; //-- insert base_addr of the mailbox
+		        axi_req_o.aw.len     = 8'd0;
+		        axi_req_o.aw.size    = 3'b010;            
+                axi_req_o.aw.addr    = 64'h0000000010404000 + (transaction_counter << 2); //-- insert base_addr of the mailbox
+                //axi_req_o.aw.addr    = 64'h0000000010404018;
                 axi_req_o.aw_valid   = 1'b1;       
             end
             
             WRITE_DATA: begin
                 axi_req_o.w_valid    = 1'b1;
-                axi_req_o.w          = log_i[transaction_counter << 5 +: 32];
-                
-		if(axi_rsp_i.w_ready)
-		    en_transaction_count = 1'b1;
+                axi_req_o.w.strb     = 8'hFF;
+                axi_req_o.w.data     = {'0, log_i_padded[transaction_counter << 5 +: 32]};
+                axi_req_o.w.last     = 1'b1; 
+                //axi_req_o.w.data     = log_i_padded[transaction_counter << 6 +: 64];
+                if(transaction_counter == N_TRANS && axi_rsp_i.w_ready)
+                    rst_n_trans_count= 1'b0; 
+		        else if(axi_rsp_i.w_ready)
+		            en_transaction_count = 1'b1;
             end
 	    
-	    WRITE_DOORBELL_ADDR: begin
-           	axi_req_o.aw.burst   = 2'b0;
-		axi_req_o.aw.len  = 8'd1;
-		axi_req_o.aw.size    = 3'd40;
- 		axi_req_o.aw.addr    = 64'h0000000010404020;
+	        WRITE_DOORBELL_ADDR: begin
+               	axi_req_o.aw.burst   = 2'b1;
+		        //axi_req_o.aw.len     = 8'd1;
+		        axi_req_o.aw.size    = 3'b001;
+ 		        axi_req_o.aw.addr    = 64'h0000000010404020;
                 axi_req_o.aw_valid   = 1'b1;
-		rst_n_trans_count    = 1'b0;
+		        rst_n_trans_count    = 1'b0;
             end
-
+    
             WRITE_DOORBELL_DATA: begin
-		axi_req_o.w_valid    = 1'b1;
-                axi_req_o.w          = 32'd1; //-- set doorbell register to 1
-		rst_n_trans_count    = 1'b0;
-		if(axi_rsp_i.w_ready)
-	 	    queue_pop_o  = 1'b1;
+		        axi_req_o.w_valid    = 1'b1;
+                axi_req_o.w.data     = 64'd1; //-- set doorbell register to 1
+                axi_req_o.w.last     = 1'b1;
+		        rst_n_trans_count    = 1'b0;
+                axi_req_o.w.strb     = 8'hFF;
+		        if(axi_rsp_i.w_ready)
+	 	            queue_pop_o  = 1'b1;
             end
         endcase 
     end
