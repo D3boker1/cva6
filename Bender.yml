@@ -21,23 +21,30 @@ sources:
     # Packages
     - target: not(cv32a6)
       files:
-      - core/include/cv64a6_imacfd_sv39_config_pkg.sv
+      - core/include/cv64a6_imafdc_sv39_config_pkg.sv
     - target: cv32a6
       files:
       - core/include/cv32a6_imac_sv0_config_pkg.sv
     - core/include/riscv_pkg.sv
     - core/include/ariane_pkg.sv
+    - core/include/ariane_rvfi_pkg.sv
     - core/include/std_cache_pkg.sv
     - core/include/wt_cache_pkg.sv
+    - core/include/instr_tracer_pkg.sv
+    - core/include/cvxif_pkg.sv
+    - core/include/
+    - core/include/
     - core/include/ariane_axi_pkg.sv
+    - core/include/ariane_ace_pkg.sv
     # Stand-alone source files
     - common/local/util/tc_sram_wrapper.sv
     - common/local/util/sram.sv
-    - core/ariane.sv
     - core/serdiv.sv
     - core/ariane_regfile_ff.sv
     - core/amo_buffer.sv
     - core/id_stage.sv
+    - core/cvxif_fu.sv
+    - core/lsu_bypass.sv
     - core/branch_unit.sv
     - core/instr_realign.sv
     - core/load_store_unit.sv
@@ -85,8 +92,14 @@ sources:
     - core/cache_subsystem/wt_dcache_missunit.sv
     - core/cache_subsystem/cva6_icache.sv
     - core/cache_subsystem/wt_dcache_wbuffer.sv
+    - core/cache_subsystem/miss_handler.sv
+    - core/cache_subsystem/snoop_cache_ctrl.sv
+    - core/cache_subsystem/std_nbdcache.sv
+    - core/cache_subsystem/std_no_dcache.sv
     - core/cache_subsystem/wt_l15_adapter.sv
     - core/cache_subsystem/wt_dcache_mem.sv
     - core/cache_subsystem/cva6_icache_axi_wrapper.sv
     - core/cache_subsystem/std_cache_subsystem.sv
     - core/cache_subsystem/wt_dcache.sv
+    - core/cva6.sv
+    - core/ariane.sv
