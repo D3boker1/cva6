@@ -16,7 +16,7 @@ dependencies:
 
 sources:
   - defines:
-      WT_DCACHE: ~
+      NO_WT_DCACHE: ~ #WT_DCACHE
     files:
     # Packages
     - target: not(cv32a6)
