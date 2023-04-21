@@ -18,7 +18,8 @@ module csr_regfile import ariane_pkg::*; #(
     parameter int          AsidWidth       = 1,
     parameter int          VmidWidth       = 1,
     parameter int unsigned NrCommitPorts   = 2,
-    parameter int unsigned NrPMPEntries    = 8
+    parameter int unsigned NrPMPEntries    = 8,
+    parameter int unsigned NrCFIRules      = 4
 ) (
     input  logic                  clk_i,                      // Clock
     input  logic                  rst_ni,                     // Asynchronous reset active low
@@ -100,7 +101,10 @@ module csr_regfile import ariane_pkg::*; #(
     output logic                  perf_we_o,
     // PMPs
     output riscv::pmpcfg_t [15:0] pmpcfg_o,   // PMP configuration containing pmpcfg for max 16 PMPs
-    output logic [15:0][riscv::PLEN-3:0] pmpaddr_o            // PMP addresses
+    output logic [15:0][riscv::PLEN-3:0] pmpaddr_o,           // PMP addresses
+    // CFI
+    output cfi_rule_t    [NrCFIRules-1:0] cfi_rules_o,
+    input  logic                          cfi_halt_i
 );
     // internal signal to keep track of access exceptions
     logic        read_access_exception, update_access_exception, privilege_violation;
@@ -183,9 +187,15 @@ module csr_regfile import ariane_pkg::*; #(
     riscv::pmpcfg_t [15:0]    pmpcfg_q,  pmpcfg_d;
     logic [15:0][riscv::PLEN-3:0]        pmpaddr_q,  pmpaddr_d;
 
-
     assign pmpcfg_o = pmpcfg_q[15:0];
     assign pmpaddr_o = pmpaddr_q;
+
+    // CFI configuration, rules and performance counters
+    riscv::xlen_t                  cfi_config_q, cfi_config_d;
+    riscv::xlen_t [NrCFIRules-1:0] cfi_masks_q, cfi_masks_d;
+    riscv::xlen_t [NrCFIRules-1:0] cfi_preds_q, cfi_preds_d;
+    riscv::xlen_t                  cfi_cntactive_q, cfi_cntactive_d;
+    riscv::xlen_t                  cfi_cnthalt_q, cfi_cnthalt_d;
 
     riscv::fcsr_t fcsr_q, fcsr_d;
     // ----------------
@@ -367,6 +377,18 @@ module csr_regfile import ariane_pkg::*; #(
                 riscv::CSR_MINSTRET:           csr_rdata = instret_q;
                 riscv::CSR_MTINST:             csr_rdata = mtinst_q;
                 riscv::CSR_MTVAL2:             csr_rdata = mtval2_q;
+                // CFI configuration, rules and performance counters
+                riscv::CSR_CFICONFIG:          csr_rdata = cfi_config_q;
+                riscv::CSR_CFIMASK0:           csr_rdata = cfi_masks_q[0];
+                riscv::CSR_CFIPRED0:           csr_rdata = cfi_preds_q[0];
+                riscv::CSR_CFIMASK1:           csr_rdata = cfi_masks_q[1];
+                riscv::CSR_CFIPRED1:           csr_rdata = cfi_preds_q[1];
+                riscv::CSR_CFIMASK2:           csr_rdata = cfi_masks_q[2];
+                riscv::CSR_CFIPRED2:           csr_rdata = cfi_preds_q[2];
+                riscv::CSR_CFIMASK3:           csr_rdata = cfi_masks_q[3];
+                riscv::CSR_CFIPRED3:           csr_rdata = cfi_preds_q[3];
+                riscv::CSR_CFIACTIVE:          csr_rdata = cfi_cntactive_q;
+                riscv::CSR_CFIHALT:            csr_rdata = cfi_cnthalt_q;
                 // Counters and Timers
                 riscv::CSR_CYCLE:              csr_rdata = cycle_q;
                 riscv::CSR_INSTRET:            csr_rdata = instret_q;
@@ -541,6 +563,18 @@ module csr_regfile import ariane_pkg::*; #(
 
         pmpcfg_d                = pmpcfg_q;
         pmpaddr_d               = pmpaddr_q;
+
+        cfi_config_d            = cfi_config_q;
+        cfi_masks_d             = cfi_masks_q;
+        cfi_preds_d             = cfi_preds_q;
+        cfi_cntactive_d         = cfi_cntactive_q;
+        if (cfi_config_q) begin
+            cfi_cntactive_d = cfi_cntactive_q + 1'b1;
+        end
+        cfi_cnthalt_d           = cfi_cnthalt_q;
+        if (cfi_halt_i) begin
+            cfi_cnthalt_d = cfi_cnthalt_q + 1'b1;
+        end
 
         // check for correct access rights and that we are writing
         if (csr_we) begin
@@ -872,6 +906,17 @@ module csr_regfile import ariane_pkg::*; #(
                 // performance counters
                 riscv::CSR_MCYCLE:             cycle_d     = csr_wdata;
                 riscv::CSR_MINSTRET:           instret     = csr_wdata;
+                // CFI configuration, rules and performance counters
+                riscv::CSR_CFICONFIG:          cfi_config_d   = csr_wdata;
+                riscv::CSR_CFIMASK0:           cfi_masks_d[0] = csr_wdata;
+                riscv::CSR_CFIPRED0:           cfi_preds_d[0] = csr_wdata;
+                riscv::CSR_CFIMASK1:           cfi_masks_d[1] = csr_wdata;
+                riscv::CSR_CFIPRED1:           cfi_preds_d[1] = csr_wdata;
+                riscv::CSR_CFIMASK2:           cfi_masks_d[2] = csr_wdata;
+                riscv::CSR_CFIPRED2:           cfi_preds_d[2] = csr_wdata;
+                riscv::CSR_CFIMASK3:           cfi_masks_d[3] = csr_wdata;
+                riscv::CSR_CFIPRED3:           cfi_preds_d[3] = csr_wdata;
+
                 riscv::CSR_ML1_ICACHE_MISS,
                 riscv::CSR_ML1_DCACHE_MISS,
                 riscv::CSR_MITLB_MISS,
@@ -1538,6 +1583,15 @@ module csr_regfile import ariane_pkg::*; #(
     assign debug_mode_o     = debug_mode_q;
     assign single_step_o    = dcsr_q.step;
 
+    // CFI output assignments
+    generate
+        for (genvar i=0; i<NrCFIRules; i++) begin
+            assign cfi_rules_o[i].en   = cfi_config_q[i];
+            assign cfi_rules_o[i].mask = cfi_masks_q[i];
+            assign cfi_rules_o[i].pred = cfi_preds_q[i];
+        end
+    endgenerate
+
     // sequential process
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (~rst_ni) begin
@@ -1610,6 +1664,11 @@ module csr_regfile import ariane_pkg::*; #(
             // pmp
             pmpcfg_q               <= '0;
             pmpaddr_q              <= '0;
+            cfi_config_q           <= 'b0;
+            cfi_masks_q            <= 'b0;
+            cfi_preds_q            <= 'b0;
+            cfi_cntactive_q        <= 'b0;
+            cfi_cnthalt_q          <= 'b0;
         end else begin
             priv_lvl_q             <= priv_lvl_d;
             v_q                    <= v_d;
@@ -1685,6 +1744,12 @@ module csr_regfile import ariane_pkg::*; #(
                     pmpaddr_q[i] <= '0;
                 end
             end
+            // CFI
+            cfi_config_q           <= cfi_config_d;
+            cfi_masks_q            <= cfi_masks_d;
+            cfi_preds_q            <= cfi_preds_d;
+            cfi_cntactive_q        <= cfi_cntactive_d;
+            cfi_cnthalt_q          <= cfi_cnthalt_d;
         end
     end
 

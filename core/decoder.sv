@@ -78,6 +78,7 @@ module decoder import ariane_pkg::*; (
         illegal_instr               = 1'b0;
         virtual_illegal_instr       = 1'b0;
         instruction_o.pc            = pc_i;
+        instruction_o.instr         = instruction_i;
         instruction_o.trans_id      = 5'b0;
         instruction_o.fu            = NONE;
         instruction_o.op            = ariane_pkg::ADD;

@@ -59,6 +59,10 @@ sources:
     - core/compressed_decoder.sv
     - core/axi_shim.sv
     - core/ex_stage.sv
+    - core/cfi_filter.sv
+    - core/cfi_queue_ctrl.sv
+    - core/cfi_backend.sv
+    - core/cfi_stage.sv
     - core/mmu_sv39/mmu.sv
     - core/mmu_sv39/ptw.sv
     - core/mult.sv

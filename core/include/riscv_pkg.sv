@@ -487,6 +487,15 @@ package riscv;
         CSR_MHARTID        = 12'hF14,
         CSR_MCYCLE         = 12'hB00,
         CSR_MINSTRET       = 12'hB02,
+        CSR_CFICONFIG      = 12'h7C0,   // CFI configuration
+        CSR_CFIMASK0       = 12'h7C1,   // CFI mask 0
+        CSR_CFIPRED0       = 12'h7C2,   // CFI predicate 0
+        CSR_CFIMASK1       = 12'h7C3,   // CFI mask 1  
+        CSR_CFIPRED1       = 12'h7C4,   // CFI predicate 1
+        CSR_CFIMASK2       = 12'h7C5,   // CFI mask 2
+        CSR_CFIPRED2       = 12'h7C6,   // CFI predicate 2
+        CSR_CFIMASK3       = 12'h7C7,   // CFI mask 3
+        CSR_CFIPRED3       = 12'h7C8,   // CFI predicate 3
         // Performance counters (Machine Mode)
         CSR_ML1_ICACHE_MISS = 12'hB03,  // L1 Instr Cache Miss
         CSR_ML1_DCACHE_MISS = 12'hB04,  // L1 Data Cache Miss
@@ -564,7 +573,9 @@ package riscv;
         CSR_HPM_COUNTER_28 = 12'hC1C,  // reserved
         CSR_HPM_COUNTER_29 = 12'hC1D,  // reserved
         CSR_HPM_COUNTER_30 = 12'hC1E,  // reserved
-        CSR_HPM_COUNTER_31 = 12'hC1F  // reserved
+        CSR_HPM_COUNTER_31 = 12'hC1F,  // reserved
+        CSR_CFIACTIVE      = 12'hCC0,  // CFI active cycles
+        CSR_CFIHALT        = 12'hCC1   // CFI stall cycles
     } csr_reg_t;
 
     localparam logic [63:0] SSTATUS_UIE  = 'h00000001;

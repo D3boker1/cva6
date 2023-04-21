@@ -54,8 +54,11 @@ module ariane import ariane_pkg::*; #(
 `else
   // memory side, AXI Master
   output ariane_axi::req_t             axi_req_o,
-  input  ariane_axi::resp_t            axi_resp_i
+  input  ariane_axi::resp_t            axi_resp_i,
 `endif
+  // CFI AXI Master
+  output ariane_axi::req_t             cfi_axi_req_o,
+  input  ariane_axi::resp_t            cfi_axi_resp_i
 );
 
   // ------------------------------------------
@@ -259,6 +262,12 @@ module ariane import ariane_pkg::*; #(
   dcache_req_o_t [2:0]      dcache_req_ports_cache_ex;
   logic                     dcache_commit_wbuffer_empty;
   logic                     dcache_commit_wbuffer_not_ni;
+
+  // --------------
+  // CFI <-> *
+  // --------------
+  cfi_rule_t [NR_CFI_RULES-1:0] cfi_rules;
+  logic                         cfi_halt;
 
   // --------------
   // Frontend
@@ -530,7 +539,31 @@ module ariane import ariane_pkg::*; #(
     .hfence_vvma_o          ( hfence_vvma_commit_controller ),
     .hfence_gvma_o          ( hfence_gvma_commit_controller ),
     .flush_commit_o         ( flush_commit                  ),
+    .cfi_halt_i             ( cfi_halt                      ),
     .*
+  );
+
+  // ---------
+  // CFI
+  // ---------
+  cfi_stage #(
+    .NR_COMMIT_PORTS       ( NR_COMMIT_PORTS       ),
+    .NR_CFI_RULES          ( NR_CFI_RULES          ),
+    .NR_CFI_QUEUE_ENTRIES  ( NR_CFI_QUEUE_ENTRIES  ),
+    .CFI_MAILBOX_ADDR      ( CFI_MAILBOX_ADDR      ),
+    .CFI_MAILBOX_DB_ADDR   ( CFI_MAILBOX_DB_ADDR   ),
+    .CFI_XFER_SIZE         ( CFI_XFER_SIZE         ),
+    .CFI_TEST_MODE_ENABLE  ( CFI_TEST_MODE_ENABLE  ),
+    .CFI_TEST_MODE_LATENCY ( CFI_TEST_MODE_LATENCY )
+  ) cfi_stage_i (
+    .clk_i          ( clk_i                  ),
+    .rst_ni         ( rst_ni                 ),
+    .commit_sbe_i   ( commit_instr_id_commit ),
+    .commit_ack_i   ( commit_ack             ),
+    .cfi_rules_i    ( cfi_rules              ),
+    .cfi_halt_o     ( cfi_halt               ),
+    .cfi_axi_req_o  ( cfi_axi_req_o          ),
+    .cfi_axi_resp_i ( cfi_axi_resp_i         )
   );
 
   // ---------
@@ -606,6 +639,8 @@ module ariane import ariane_pkg::*; #(
     .ipi_i,
     .irq_i,
     .time_irq_i,
+    .cfi_rules_o            ( cfi_rules                     ),
+    .cfi_halt_i             ( cfi_halt                      ),
     .*
   );
   // ------------------------

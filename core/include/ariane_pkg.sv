@@ -621,6 +621,7 @@ package ariane_pkg;
     // ---------------
     typedef struct packed {
         logic [riscv::VLEN-1:0]   pc;            // PC of instruction
+        logic [31:0]              instr;         // RV32 representation of instruction
         logic [TRANS_ID_BITS-1:0] trans_id;      // this can potentially be simplified, we could index the scoreboard entry
                                                  // with the transaction id in any case make the width more generic
         fu_t                      fu;            // functional unit to use
@@ -884,4 +885,29 @@ package ariane_pkg;
             LB, LBU, HLV_B, HLV_BU, SB, HSV_B, FLB, FSB: return 2'b00;
         endcase
     endfunction
+
+    // -----------------------
+    // Control-Flow Integrity
+    // -----------------------
+    localparam int unsigned                   NR_CFI_RULES          = 4;
+    localparam int unsigned                   NR_CFI_QUEUE_ENTRIES  = 4;
+    localparam logic        [riscv::VLEN-1:0] CFI_MAILBOX_ADDR      = 'h10404000;
+    localparam logic        [riscv::VLEN-1:0] CFI_MAILBOX_DB_ADDR   = 'h10404020;
+    localparam int unsigned                   CFI_XFER_SIZE         = 32;
+    localparam int unsigned                   CFI_TEST_MODE_ENABLE  = 0;
+    localparam int unsigned                   CFI_TEST_MODE_LATENCY = 10;
+
+    typedef struct packed {
+        logic        en;
+        logic [31:0] mask;
+        logic [31:0] pred;
+    } cfi_rule_t;
+
+    typedef struct packed {
+        logic [31:0]            instr;
+        logic [riscv::VLEN-1:0] addr_pc;
+        logic [riscv::VLEN-1:0] addr_npc;
+        logic [riscv::VLEN-1:0] addr_target;
+    } cfi_log_t;
+
 endpackage

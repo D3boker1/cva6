@@ -53,7 +53,8 @@ module commit_stage import ariane_pkg::*; #(
     output logic                                    flush_commit_o,     // request a pipeline flush
     output logic                                    sfence_vma_o,       // flush TLBs and pipeline
     output logic                                    hfence_vvma_o,      // flush TLBs and pipeline
-    output logic                                    hfence_gvma_o       // flush TLBs and pipeline
+    output logic                                    hfence_gvma_o,      // flush TLBs and pipeline
+    input  logic                                    cfi_halt_i          // CFI stage busy
 );
 
 // ila_0 i_ila_commit (
@@ -118,7 +119,7 @@ module commit_stage import ariane_pkg::*; #(
 
         // we will not commit the instruction if we took an exception
         // and we do not commit the instruction if we requested a halt
-        if (commit_instr_i[0].valid && !commit_instr_i[0].ex.valid && !halt_i) begin
+        if (commit_instr_i[0].valid && !commit_instr_i[0].ex.valid && !halt_i && !cfi_halt_i) begin
             // we can definitely write the register file
             // if the instruction is not committing anything the destination
             commit_ack_o[0] = 1'b1;
@@ -247,7 +248,8 @@ module commit_stage import ariane_pkg::*; #(
                                 && !(commit_instr_i[0].fu inside {CSR})
                                 && !flush_dcache_i
                                 && !instr_0_is_amo
-                                && !single_step_i) begin
+                                && !single_step_i
+                                && !cfi_halt_i) begin
                 // only if the first instruction didn't throw an exception and this instruction won't throw an exception
                 // and the functional unit is of type ALU, LOAD, CTRL_FLOW, MULT, FPU or FPU_VEC
                 if (!exception_o.valid && !commit_instr_i[1].ex.valid
