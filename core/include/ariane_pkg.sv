@@ -891,9 +891,9 @@ package ariane_pkg;
     // -----------------------
     localparam int unsigned                   NR_CFI_RULES          = 4;
     localparam int unsigned                   NR_CFI_QUEUE_ENTRIES  = 4;
-    localparam logic        [riscv::VLEN-1:0] CFI_MAILBOX_ADDR      = 'h10404000;
-    localparam logic        [riscv::VLEN-1:0] CFI_MAILBOX_DB_ADDR   = 'h10404020;
-    localparam int unsigned                   CFI_XFER_SIZE         = 32;
+    localparam logic        [riscv::VLEN-1:0] CFI_MAILBOX_ADDR      = 'hA000_0000;
+    localparam logic        [riscv::VLEN-1:0] CFI_MAILBOX_DB_ADDR   = 'hA000_0020;
+    localparam int unsigned                   CFI_XFER_SIZE         = 64;
     localparam int unsigned                   CFI_TEST_MODE_ENABLE  = 0;
     localparam int unsigned                   CFI_TEST_MODE_LATENCY = 10;
 
