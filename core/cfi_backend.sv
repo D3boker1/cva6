@@ -92,6 +92,7 @@ module cfi_backend_axi import ariane_pkg::*; #(
     input  logic              clk_i,
     input  logic              rst_ni,
     input  cfi_log_t          log_i,
+    input  logic              mbox_completion_irq_i,
     input  logic              queue_empty_i,
     output logic              queue_pop_o,
     output ariane_axi::req_t  axi_req_o,
@@ -103,10 +104,18 @@ module cfi_backend_axi import ariane_pkg::*; #(
     localparam int unsigned LOG_PADDED_SIZE = LOG_NR_XFERS << $clog2(XFER_SIZE);
     localparam int unsigned CNT_NR_BITS     = $clog2(LOG_NR_XFERS) + $clog2(XFER_SIZE);
 
-    enum {IDLE, W_ADDR, W_DATA, W_DB_ADDR, W_DB_DATA} state_d, state_q;
+    localparam int unsigned REG_TO_READ     = 8; //-- TODO: Make it configurable by an external parameter
+
+    enum {IDLE, W_ADDR, W_DATA, W_DB_ADDR, W_DB_DATA, WAIT_COMPLETION, READ_MBOX, CHECK_RESULT, CLEAN_COMPLETION_ADDR, CLEAN_COMPLETION_W} state_d, state_q;
 
     logic [CNT_NR_BITS-1:0]     xfer_cnt_d, xfer_cnt_q;
     logic [LOG_PADDED_SIZE-1:0] log_padded;
+    logic          fifo_full;
+    logic          fifo_empty;
+    logic          fifo_push;
+    logic          fifo_flush;
+    logic          fifo_pop;
+    logic [63 : 0] fifo_data_out;
 
     always_comb begin
         state_d           = IDLE;
@@ -116,7 +125,11 @@ module cfi_backend_axi import ariane_pkg::*; #(
         axi_req_o         = 'b0;
         axi_req_o.r_ready = 'b1;
         axi_req_o.b_ready = 'b1;
-
+        fifo_full         = 1'b0;
+        fifo_empty        = 1'b0;
+        fifo_push         = 1'b0;
+        fifo_flush        = 1'b0;     
+        fifo_pop          = 1'b0;
         unique case (state_q)
             IDLE: begin
                 if (queue_empty_i) begin
@@ -174,7 +187,7 @@ module cfi_backend_axi import ariane_pkg::*; #(
             end
             W_DB_DATA: begin
                 if(axi_resp_i.w_ready) begin
-                    state_d = IDLE;
+                    state_d = WAIT_COMPLETION;
                 end
                 else begin
                     state_d = W_DB_DATA;
@@ -187,6 +200,49 @@ module cfi_backend_axi import ariane_pkg::*; #(
                     queue_pop_o = 1'b1;
                 end
             end
+            WAIT_COMPLETION: begin
+                if(mbox_completion_irq_i)
+                    state_d = READ_MBOX;
+
+                else
+                    state_d = WAIT_COMPLETION;       
+            end
+            READ_MBOX: begin
+                if(axi_resp_i.aw_ready)
+                    xfer_cnt_d = xfer_cnt_q + 2;
+                if(xfer_cnt_d == REG_TO_READ)
+                    state_d = CLEAN_COMPLETION_ADDR;    
+                else    
+                    state_d = READ_MBOX;  
+                if(axi_resp_i.r_valid && !fifo_full)
+                    fifo_push = 1'b1;
+                axi_req_o.ar_valid = 1'b1;
+                axi_req_o.ar.addr  = MAILBOX_ADDR;
+                axi_req_o.ar.burst = 1'b1;
+                axi_req_o.aw.size  = 3'd3;
+                axi_req_o.aw.len   = REG_TO_READ >> 1;
+                axi_req_o.r_ready  = !fifo_full;
+            end
+            CLEAN_COMPLETION_ADDR: begin
+                axi_req_o.aw.burst = 'b1;
+                axi_req_o.aw.size  = 'b010;
+                axi_req_o.aw.addr  = MAILBOX_DB_ADDR + 4; // Mbox Completion Addr
+                axi_req_o.aw_valid = 'b1;
+                if(axi_resp_i.aw_ready)
+                    state_d = CLEAN_COMPLETION_W;
+                else    
+                    state_d = CLEAN_COMPLETION_ADDR; 
+            end  
+            CLEAN_COMPLETION_W: begin
+                axi_req_o.w_valid = 'b1;
+                axi_req_o.w.data  = 'b1;
+                axi_req_o.w.last  = 'b1;
+                axi_req_o.w.strb  = 'hff;
+                if(axi_resp_i.w_ready)
+                    state_d = IDLE;
+                else    
+                    state_d = CLEAN_COMPLETION_W;
+            end  
             default: begin
                 state_d = IDLE;
             end
@@ -204,6 +260,29 @@ module cfi_backend_axi import ariane_pkg::*; #(
         end
     end
 
+    //-- FIFO to store reccived data
+
+    fifo_v3 #(
+        .FALL_THROUGH   (1'b0         ),     // fifo is in fall-through mode
+        .DATA_WIDTH     (64           ),    // default data width if the fifo is of type logic
+        .DEPTH          (REG_TO_READ  )    // depth can be arbitrary from 0 to 2**32
+    ) i_rx_fifo (
+        .clk_i          (clk_i        ), 
+        .rst_ni         (rst_ni       ), 
+        .flush_i        (fifo_flush   ), 
+        .testmode_i     (1'b0         ), 
+    // status flags
+        .full_o         (fifo_full    ),  
+        .empty_o        (fifo_empty   ),   
+        .usage_o        (             ),  
+    // as long as the queue is not full 
+        .data_i         (axi_resp_i.r ), 
+        .push_i         (fifo_push    ), 
+    // as long as the queue is not empty we can pop new elements
+        .data_o         (fifo_data_out),  
+        .pop_i          (fifo_pop     )   
+    );
+
 endmodule
 
 
@@ -217,6 +296,7 @@ module cfi_backend import ariane_pkg::*; #(
     input  logic              clk_i,
     input  logic              rst_ni,
     input  cfi_log_t          log_i,
+    input  logic              mbox_completion_irq_i,
     input  logic              queue_empty_i,
     output logic              queue_pop_o,
     output ariane_axi::req_t  axi_req_o,
@@ -239,17 +319,18 @@ module cfi_backend import ariane_pkg::*; #(
         end
         else begin
             cfi_backend_axi #(
-                .MAILBOX_ADDR    ( MAILBOX_ADDR    ),
-                .MAILBOX_DB_ADDR ( MAILBOX_DB_ADDR ),
-                .XFER_SIZE       ( XFER_SIZE       )
-            ) cfi_backend_core_i (
-                .clk_i         ( clk_i         ),
-                .rst_ni        ( rst_ni        ),
-                .log_i         ( log_i         ),
-                .queue_empty_i ( queue_empty_i ),
-                .queue_pop_o   ( queue_pop_o   ),
-                .axi_req_o     ( axi_req_o     ),
-                .axi_resp_i    ( axi_resp_i    )
+                .MAILBOX_ADDR           ( MAILBOX_ADDR          ),
+                .MAILBOX_DB_ADDR        ( MAILBOX_DB_ADDR       ),
+                .XFER_SIZE              ( XFER_SIZE             )
+            ) cfi_backend_core_i (      
+                .clk_i                  ( clk_i                 ),
+                .rst_ni                 ( rst_ni                ),
+                .log_i                  ( log_i                 ),
+                .mbox_completion_irq_i  ( mbox_completion_irq_i ),
+                .queue_empty_i          ( queue_empty_i         ),
+                .queue_pop_o            ( queue_pop_o           ),
+                .axi_req_o              ( axi_req_o             ),
+                .axi_resp_i             ( axi_resp_i            )
             );
         end
     endgenerate

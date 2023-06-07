@@ -31,6 +31,7 @@ module cfi_stage import ariane_pkg::*; #(
     input  scoreboard_entry_t [NR_COMMIT_PORTS-1:0] commit_sbe_i,
     input  logic              [NR_COMMIT_PORTS-1:0] commit_ack_i,
     input  cfi_rule_t         [NR_CFI_RULES-1:0]    cfi_rules_i,
+    input  logic                                    mbox_completion_irq_i,
     output logic                                    cfi_halt_o,
     output ariane_axi::req_t                        cfi_axi_req_o,
     input  ariane_axi::resp_t                       cfi_axi_resp_i
@@ -88,19 +89,20 @@ module cfi_stage import ariane_pkg::*; #(
     );
 
     cfi_backend #(
-        .MAILBOX_ADDR      ( CFI_MAILBOX_ADDR      ),
-        .MAILBOX_DB_ADDR   ( CFI_MAILBOX_DB_ADDR   ),
-        .XFER_SIZE         ( CFI_XFER_SIZE         ),
-        .TEST_MODE_ENABLE  ( CFI_TEST_MODE_ENABLE  ),
-        .TEST_MODE_LATENCY ( CFI_TEST_MODE_LATENCY )
+        .MAILBOX_ADDR           ( CFI_MAILBOX_ADDR      ),
+        .MAILBOX_DB_ADDR        ( CFI_MAILBOX_DB_ADDR   ),
+        .XFER_SIZE              ( CFI_XFER_SIZE         ),
+        .TEST_MODE_ENABLE       ( CFI_TEST_MODE_ENABLE  ),
+        .TEST_MODE_LATENCY      ( CFI_TEST_MODE_LATENCY )
     ) cfi_backend_i (
-        .clk_i         ( clk_i          ),
-        .rst_ni        ( rst_ni         ),
-        .log_i         ( queue_data_out ),
-        .queue_empty_i ( queue_empty    ),
-        .queue_pop_o   ( queue_pop      ),
-        .axi_req_o     ( cfi_axi_req_o  ),
-        .axi_resp_i    ( cfi_axi_resp_i )
+        .clk_i                  ( clk_i                 ),
+        .rst_ni                 ( rst_ni                ),
+        .log_i                  ( queue_data_out        ),
+        .mbox_completion_irq_i  ( mbox_completion_irq_i ),
+        .queue_empty_i          ( queue_empty           ),
+        .queue_pop_o            ( queue_pop             ),
+        .axi_req_o              ( cfi_axi_req_o         ),
+        .axi_resp_i             ( cfi_axi_resp_i        )
     );
 
 endmodule

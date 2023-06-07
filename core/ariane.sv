@@ -35,6 +35,8 @@ module ariane import ariane_pkg::*; #(
   // Interrupt inputs
   input  logic [1:0]                   irq_i,        // level sensitive IR lines, mip & sip (async)
   input  logic                         ipi_i,        // inter-processor interrupts (async)
+
+  input  logic                         cfi_completion_i,
   // Timer facilities
   input  logic                         time_irq_i,   // timer interrupt in (async)
   input  logic                         debug_req_i,  // debug request (async)
@@ -556,14 +558,15 @@ module ariane import ariane_pkg::*; #(
     .CFI_TEST_MODE_ENABLE  ( CFI_TEST_MODE_ENABLE  ),
     .CFI_TEST_MODE_LATENCY ( CFI_TEST_MODE_LATENCY )
   ) cfi_stage_i (
-    .clk_i          ( clk_i                  ),
-    .rst_ni         ( rst_ni                 ),
-    .commit_sbe_i   ( commit_instr_id_commit ),
-    .commit_ack_i   ( commit_ack             ),
-    .cfi_rules_i    ( cfi_rules              ),
-    .cfi_halt_o     ( cfi_halt               ),
-    .cfi_axi_req_o  ( cfi_axi_req_o          ),
-    .cfi_axi_resp_i ( cfi_axi_resp_i         )
+    .clk_i                 ( clk_i                  ),
+    .rst_ni                ( rst_ni                 ),
+    .commit_sbe_i          ( commit_instr_id_commit ),
+    .commit_ack_i          ( commit_ack             ),
+    .mbox_completion_irq_i ( cfi_completion_i       ),
+    .cfi_rules_i           ( cfi_rules              ),
+    .cfi_halt_o            ( cfi_halt               ),
+    .cfi_axi_req_o         ( cfi_axi_req_o          ),
+    .cfi_axi_resp_i        ( cfi_axi_resp_i         )
   );
 
   // ---------
