@@ -125,6 +125,7 @@ module cfi_backend_axi import ariane_pkg::*; #(
         axi_req_o         = 'b0;
         axi_req_o.r_ready = 'b1;
         axi_req_o.b_ready = 'b1;
+        axi_req_o.w.last  = 1'b0;
         fifo_full         = 1'b0;
         fifo_empty        = 1'b0;
         fifo_push         = 1'b0;
@@ -149,28 +150,30 @@ module cfi_backend_axi import ariane_pkg::*; #(
                 xfer_cnt_d         = xfer_cnt_q;
                 axi_req_o.aw.id    = 'd3;
                 axi_req_o.aw.burst = 'b1;
-                axi_req_o.aw.len   = 'b0;
+                axi_req_o.aw.len   = LOG_NR_XFERS;
                 axi_req_o.aw.size  = 'b010;
                 axi_req_o.aw.addr  = MAILBOX_ADDR + (xfer_cnt_q << ($clog2(XFER_SIZE) - 3));
                 axi_req_o.aw_valid = 'b1;
+
+                axi_req_o.aw.cache = 4'b0010;
             end
             W_DATA: begin
-                if ((xfer_cnt_q == LOG_NR_XFERS - 1) && axi_resp_i.w_ready) begin
+                if ((xfer_cnt_q == LOG_NR_XFERS) && axi_resp_i.w_ready) begin
                     state_d    = W_DB_ADDR;
                     xfer_cnt_d = 'b0;
+                    axi_req_o.w.last  = 'b1; 
                 end
                 else if (axi_resp_i.w_ready) begin
-                    state_d    = W_ADDR;
+                    state_d    = W_DATA;
                     xfer_cnt_d = xfer_cnt_q + 1;
                 end
                 else begin
-                    state_d = W_DATA;
-                    xfer_cnt_d         = xfer_cnt_q;
+                    state_d       = W_DATA;
+                    xfer_cnt_d    = xfer_cnt_q;
                 end
                 axi_req_o.w_valid = 'b1; 
                 axi_req_o.w.strb  = 'hff; 
                 axi_req_o.w.data  = {'0, log_padded[xfer_cnt_q << $clog2(XFER_SIZE)+:XFER_SIZE]}; 
-                axi_req_o.w.last  = 'b1; 
             end
             W_DB_ADDR: begin
                 xfer_cnt_d = 'b0;
