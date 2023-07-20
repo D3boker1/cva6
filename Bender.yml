@@ -213,6 +213,7 @@ sources:
       - core/cache_subsystem/wt_l15_adapter.sv
       - core/cache_subsystem/axi_adapter.sv
       - core/cache_subsystem/miss_handler.sv
+      - core/cache_subsystem/snoop_cache_ctrl.sv
       - core/cache_subsystem/std_nbdcache.sv
       - core/cache_subsystem/cva6_icache_axi_wrapper.sv
       - core/cache_subsystem/std_cache_subsystem.sv
