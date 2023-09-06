@@ -104,7 +104,8 @@ module csr_regfile import ariane_pkg::*; #(
     output logic [15:0][riscv::PLEN-3:0] pmpaddr_o,           // PMP addresses
     // CFI
     output cfi_rule_t    [NrCFIRules-1:0] cfi_rules_o,
-    input  logic                          cfi_halt_i
+    input  logic                          cfi_halt_i,
+    input  logic                          cfi_logqstatus_i
 );
     // internal signal to keep track of access exceptions
     logic        read_access_exception, update_access_exception, privilege_violation;
@@ -196,6 +197,7 @@ module csr_regfile import ariane_pkg::*; #(
     riscv::xlen_t [NrCFIRules-1:0] cfi_preds_q, cfi_preds_d;
     riscv::xlen_t                  cfi_cntactive_q, cfi_cntactive_d;
     riscv::xlen_t                  cfi_cnthalt_q, cfi_cnthalt_d;
+    riscv::xlen_t                  cfi_logqstatus_q, cfi_logqstatus_d;
 
     riscv::fcsr_t fcsr_q, fcsr_d;
     // ----------------
@@ -389,6 +391,7 @@ module csr_regfile import ariane_pkg::*; #(
                 riscv::CSR_CFIPRED3:           csr_rdata = cfi_preds_q[3];
                 riscv::CSR_CFIACTIVE:          csr_rdata = cfi_cntactive_q;
                 riscv::CSR_CFIHALT:            csr_rdata = cfi_cnthalt_q;
+                riscv::CSR_CFIBUSY:            csr_rdata = cfi_logqstatus_q;
                 // Counters and Timers
                 riscv::CSR_CYCLE:              csr_rdata = cycle_q;
                 riscv::CSR_INSTRET:            csr_rdata = instret_q;
@@ -575,7 +578,7 @@ module csr_regfile import ariane_pkg::*; #(
         if (cfi_halt_i) begin
             cfi_cnthalt_d = cfi_cnthalt_q + 1'b1;
         end
-
+        cfi_logqstatus_d  = cfi_logqstatus_i; 
         // check for correct access rights and that we are writing
         if (csr_we) begin
             unique case (csr_addr.address)
@@ -1750,6 +1753,7 @@ module csr_regfile import ariane_pkg::*; #(
             cfi_preds_q            <= cfi_preds_d;
             cfi_cntactive_q        <= cfi_cntactive_d;
             cfi_cnthalt_q          <= cfi_cnthalt_d;
+            cfi_logqstatus_q       <= cfi_logqstatus_d;
         end
     end
 

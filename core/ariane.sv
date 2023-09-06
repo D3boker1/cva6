@@ -270,6 +270,7 @@ module ariane import ariane_pkg::*; #(
   // --------------
   cfi_rule_t [NR_CFI_RULES-1:0] cfi_rules;
   logic                         cfi_halt;
+  logic                         cfi_logqstatus;
 
   // --------------
   // Frontend
@@ -565,6 +566,7 @@ module ariane import ariane_pkg::*; #(
     .mbox_completion_irq_i ( cfi_completion_i       ),
     .cfi_rules_i           ( cfi_rules              ),
     .cfi_halt_o            ( cfi_halt               ),
+    .cfi_logqstatus_o      ( cfi_logqstatus         ),
     .cfi_axi_req_o         ( cfi_axi_req_o          ),
     .cfi_axi_resp_i        ( cfi_axi_resp_i         )
   );
@@ -644,6 +646,7 @@ module ariane import ariane_pkg::*; #(
     .time_irq_i,
     .cfi_rules_o            ( cfi_rules                     ),
     .cfi_halt_i             ( cfi_halt                      ),
+    .cfi_logqstatus_i       ( cfi_logqstatus                ),
     .*
   );
   // ------------------------

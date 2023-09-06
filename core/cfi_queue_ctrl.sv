@@ -61,7 +61,8 @@ module cfi_queue_ctrl import ariane_pkg::*; #(
         reg_v_mask = 'b0;
 
         // Helper signals.
-        flag_halt = (reg_v_popcount > 'b1) || (!reg_v_empty && queue_full_i);
+        //flag_halt = (reg_v_popcount > 'b1) || (!reg_v_empty && queue_full_i);
+        flag_halt = (reg_v_popcount > 'b1) || queue_full_i;
         flag_push = !reg_v_empty && !queue_full_i;
 
         // CFI halt signal.

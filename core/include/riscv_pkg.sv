@@ -496,6 +496,8 @@ package riscv;
         CSR_CFIPRED2       = 12'h7C6,   // CFI predicate 2
         CSR_CFIMASK3       = 12'h7C7,   // CFI mask 3
         CSR_CFIPRED3       = 12'h7C8,   // CFI predicate 3
+        CSR_CFIBUSY        = 12'h7C9,   // CFI log queue busy
+
         // Performance counters (Machine Mode)
         CSR_ML1_ICACHE_MISS = 12'hB03,  // L1 Instr Cache Miss
         CSR_ML1_DCACHE_MISS = 12'hB04,  // L1 Data Cache Miss

@@ -33,6 +33,7 @@ module cfi_stage import ariane_pkg::*; #(
     input  cfi_rule_t         [NR_CFI_RULES-1:0]    cfi_rules_i,
     input  logic                                    mbox_completion_irq_i,
     output logic                                    cfi_halt_o,
+    output logic                                    cfi_logqstatus_o,
     output ariane_axi::req_t                        cfi_axi_req_o,
     input  ariane_axi::resp_t                       cfi_axi_resp_i
 );
@@ -45,6 +46,8 @@ module cfi_stage import ariane_pkg::*; #(
     logic                           queue_push;
     cfi_log_t                       queue_data_out;
     logic                           queue_pop;
+
+    assign cfi_logqstatus_o = queue_empty;
 
     cfi_filter #(
         .NR_COMMIT_PORTS ( NR_COMMIT_PORTS ),
