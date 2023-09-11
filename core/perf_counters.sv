@@ -233,21 +233,23 @@ module perf_counters import ariane_pkg::*; #(
        end
    end
 
-   xlnx_ila i_ila (
-    clk_i, 
-    generic_counter_q[1][63:32], 
-    generic_counter_q[1][31:0], 
-    generic_counter_q[2][63:32], 
-    generic_counter_q[2][31:0], 
-    generic_counter_q[3][63:32], 
-    generic_counter_q[3][31:0], 
-    generic_counter_q[4][63:32], 
-    generic_counter_q[4][31:0], 
-    {debug_mode_i, we_i, l1_dcache_miss_i, l1_dcache_hit_i, l1_dcache_flushing_i},
-    '0,
-    '0,
-    '0,
-    '0
-  );
+   `ifdef XILINX_ILA
+    xlnx_ila i_ila (
+        clk_i,
+        generic_counter_q[1][63:32],
+        generic_counter_q[1][31:0],
+        generic_counter_q[2][63:32],
+        generic_counter_q[2][31:0],
+        generic_counter_q[3][63:32],
+        generic_counter_q[3][31:0],
+        generic_counter_q[4][63:32],
+        generic_counter_q[4][31:0],
+        {debug_mode_i, we_i, l1_dcache_miss_i, l1_dcache_hit_i, l1_dcache_flushing_i},
+        '0,
+        '0,
+        '0,
+        '0
+    );
+   `endif
 
 endmodule
