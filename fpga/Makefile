@@ -1,4 +1,4 @@
-VIVADO ?= vivado
+VIVADO ?= vivado-2018.2 vivado
 VIVADOFLAGS ?= -nojournal -mode batch -source scripts/prologue.tcl
 
 work-dir := work-fpga
