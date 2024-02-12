@@ -43,3 +43,7 @@
 [submodule "src/rv_plic"]
 	path = src/rv_plic
 	url = https://github.com/pulp-platform/rv_plic.git
+[submodule "fpga/src/ariane-ethernet"]
+	path = fpga/src/ariane-ethernet
+	url = git@github.com:AlSaqr-platform/ethernet.git
+	branch = ariane-ethernet_ssio-no-buf
