@@ -17,7 +17,7 @@ all: $(bootrom_img)
 	$(RISCV_OBJCOPY) -O binary $< $@
 
 %.elf: %.S linker.ld $(DTB)
-	$(RISCV_GCC) -Tlinker.ld -march=rv32i -mabi=ilp32 $< -nostdlib -static -Wl,--no-gc-sections -o $@
+	$(RISCV_GCC) -Tlinker.ld -march=rv64g -mabi=lp64 $< -nostdlib -static -Wl,--no-gc-sections -o $@
 
 %.dts:
 	$(PYTHON) ./gen_dts.py $(CORES)

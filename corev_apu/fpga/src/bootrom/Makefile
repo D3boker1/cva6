@@ -3,7 +3,7 @@ CROSSCOMPILE ?= riscv64-unknown-elf-
 CC = ${CROSSCOMPILE}gcc
 
 ifeq ($(XLEN), 64)
-CFLAGS = -Os -ggdb -march=rv64imac -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs -fno-builtin
+CFLAGS = -Os -ggdb -march=rv64g -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs -fno-builtin
 else
 CFLAGS = -O2 -ggdb  -march=rv32im -mabi=ilp32 -W -Wall -mcmodel=medany -mexplicit-relocs -fno-builtin
 endif
