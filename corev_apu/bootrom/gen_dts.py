@@ -61,7 +61,7 @@ header = f"""\
 cpus = ""
 for c in range(ncores):
     cpus = cpus + "    CPU" + str(c) + ": cpu@" + str(c) + " {\n"
-    cpus = cpus + "      clock-frequency = <50000000>; // 50 MHz\n"
+    cpus = cpus + "      clock-frequency = <40000000>; // 40 MHz\n"
     cpus = cpus + "      device_type = \"cpu\";\n"
     cpus = cpus + "      reg = <" + str(c) + ">;\n"
     cpus = cpus + "      status = \"okay\";\n"
