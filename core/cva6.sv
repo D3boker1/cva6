@@ -234,13 +234,13 @@ module cva6 import ariane_pkg::*; #(
   riscv::xlen_t             data_csr_perf, data_perf_csr;
   logic                     we_csr_perf;
 
-  logic                     dc_hit,
-  logic                     dc_write_hit_unique,
-  logic                     dc_write_hit_shared,
-  logic                     dc_write_miss,
-  logic                     dc_clean_invalid_hit,
-  logic                     dc_clean_invalid_miss,
-  logic                     dc_flushing,
+  logic                     dc_hit;
+  logic                     dc_write_hit_unique;
+  logic                     dc_write_hit_shared;
+  logic                     dc_write_miss;
+  logic                     dc_clean_invalid_hit;
+  logic                     dc_clean_invalid_miss;
+  logic                     dc_flushing;
 
   logic                     snoop_read_once;
   logic                     snoop_read_shrd;
