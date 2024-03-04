@@ -42,6 +42,13 @@ module perf_counters import ariane_pkg::*; #(
   input  logic                                    eret_i,
   input  bp_resolve_t                             resolved_branch_i,
   // for newly added events
+  input  logic                                    dc_hit_i,
+  input  logic                                    dc_write_hit_unique_i,
+  input  logic                                    dc_write_hit_shared_i,
+  input  logic                                    dc_write_miss_i,
+  input  logic                                    dc_clean_invalid_hit_i,
+  input  logic                                    dc_clean_invalid_miss_i,
+  input  logic                                    dc_flushing_i,
   input  logic                                    snoop_read_once_i,
   input  logic                                    snoop_read_shrd_i,
   input  logic                                    snoop_read_clean_i,
@@ -136,6 +143,13 @@ module perf_counters import ariane_pkg::*; #(
            6'b011111 : events[i] = snoop_clean_invld_i;
            6'b100000 : events[i] = snoop_clean_uniq_i;
            6'b100001 : events[i] = snoop_make_invld_i;
+           6'b100010 : events[i] = dc_hit_i;
+           6'b100011 : events[i] = dc_write_hit_unique_i;
+           6'b100100 : events[i] = dc_write_hit_shared_i;
+           6'b100101 : events[i] = dc_write_miss_i;
+           6'b100110 : events[i] = dc_clean_invalid_hit_i;
+           6'b100111 : events[i] = dc_clean_invalid_miss_i;
+           6'b101000 : events[i] = dc_flushing_i;
            default:   events[i] = 0;
          endcase
        end

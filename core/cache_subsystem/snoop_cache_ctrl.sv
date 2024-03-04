@@ -44,6 +44,9 @@ module snoop_cache_ctrl import ariane_pkg::*; import std_cache_pkg::*; #(
   input  logic [63:0]                        amo_addr_i,
   input  logic        [DCACHE_SET_ASSOC-1:0] miss_invalidate_req_i,
   input  logic      [DCACHE_INDEX_WIDTH-1:0] miss_invalidate_addr_i,
+  // to perf counters
+  output logic                               clean_invalid_hit_o,
+  output logic                               clean_invalid_miss_o,
   // to/from cache_ctrl
   input  logic                               updating_cache_i,
   output readshared_done_t                   readshared_done_o
@@ -150,6 +153,9 @@ module snoop_cache_ctrl import ariane_pkg::*; import std_cache_pkg::*; #(
     invalidate_addr_o = {mem_req_q.tag, mem_req_q.index};
     start_req_o = 1'b0;
 
+    clean_invalid_hit_o = 1'b0;
+    clean_invalid_miss_o = 1'b0;
+
     case (state_q)
 
       IDLE: begin
@@ -214,6 +220,7 @@ module snoop_cache_ctrl import ariane_pkg::*; import std_cache_pkg::*; #(
               cr_resp_d.passDirty = dirty;
               cr_resp_d.isShared = 1'b0;
               state_d = INVALIDATE;
+              clean_invalid_hit_o = 1'b1;
             end
             snoop_pkg::READ_ONCE: begin
               cr_resp_d.isShared = shared;
@@ -238,6 +245,7 @@ module snoop_cache_ctrl import ariane_pkg::*; import std_cache_pkg::*; #(
           cr_resp_d.passDirty = 1'b0;
           cr_resp_d.isShared = 1'b0;
           state_d = SEND_CR_RESP;
+          clean_invalid_miss_o = (ac_snoop_q == snoop_pkg::CLEAN_INVALID);
         end
       end
 
