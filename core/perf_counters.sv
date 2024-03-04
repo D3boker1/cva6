@@ -30,8 +30,6 @@ module perf_counters import ariane_pkg::*; #(
   // from L1 caches
   input  logic                                    l1_icache_miss_i,
   input  logic                                    l1_dcache_miss_i,
-  input  logic                                    l1_dcache_hit_i,
-  input  logic                                    l1_dcache_flushing_i,
   // from MMU
   input  logic                                    itlb_miss_i,
   input  logic                                    dtlb_miss_i,
