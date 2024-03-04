@@ -54,6 +54,16 @@ module std_cache_subsystem import ariane_pkg::*; import std_cache_pkg::*; #(
     output logic                           dcache_flush_ack_o,     // send a single cycle acknowledge signal when the cache is flushed
     output logic                           dcache_miss_o,          // we missed on a ld/st
     output logic                           wbuffer_empty_o,        // statically set to 1, as there is no wbuffer in this cache system
+    // Perf counters
+    output logic                           snoop_read_once_o,
+    output logic                           snoop_read_shrd_o,
+    output logic                           snoop_read_clean_o,
+    output logic                           snoop_read_no_sd_o,
+    output logic                           snoop_read_uniq_o,
+    output logic                           snoop_clean_shrd_o,
+    output logic                           snoop_clean_invld_o,
+    output logic                           snoop_clean_uniq_o,
+    output logic                           snoop_make_invld_o,
     // Request ports
     input  dcache_req_i_t   [2:0]          dcache_req_ports_i,     // to/from LSU
     output dcache_req_o_t   [2:0]          dcache_req_ports_o,     // to/from LSU
@@ -86,6 +96,15 @@ module std_cache_subsystem import ariane_pkg::*; import std_cache_pkg::*; #(
   assign busy_o = icache_busy | dcache_busy;
 
   if (DCACHE_COHERENT) begin
+    assign snoop_read_once_o = axi_resp_i.ac_valid & snoop_port_o.ac_ready & ( axi_resp_i.ac.snoop == snoop_pkg::READ_ONCE );
+    assign snoop_read_shrd_o = axi_resp_i.ac_valid & snoop_port_o.ac_ready & ( axi_resp_i.ac.snoop == snoop_pkg::READ_SHARED );
+    assign snoop_read_clean_o = axi_resp_i.ac_valid & snoop_port_o.ac_ready & ( axi_resp_i.ac.snoop == snoop_pkg::READ_CLEAN );
+    assign snoop_read_no_sd_o = axi_resp_i.ac_valid & snoop_port_o.ac_ready & ( axi_resp_i.ac.snoop == snoop_pkg::READ_NOT_SHARED_DIRTY );
+    assign snoop_read_uniq_o = axi_resp_i.ac_valid & snoop_port_o.ac_ready & ( axi_resp_i.ac.snoop == snoop_pkg::READ_UNIQUE );
+    assign snoop_clean_shrd_o = axi_resp_i.ac_valid & snoop_port_o.ac_ready & ( axi_resp_i.ac.snoop == snoop_pkg::CLEAN_SHARED );
+    assign snoop_clean_invld_o = axi_resp_i.ac_valid & snoop_port_o.ac_ready & ( axi_resp_i.ac.snoop == snoop_pkg::CLEAN_INVALID );
+    assign snoop_clean_uniq_o = axi_resp_i.ac_valid & snoop_port_o.ac_ready & ( axi_resp_i.ac.snoop == snoop_pkg::CLEAN_UNIQUE );
+    assign snoop_make_invld_o = axi_resp_i.ac_valid & snoop_port_o.ac_ready & ( axi_resp_i.ac.snoop == snoop_pkg::MAKE_INVALID );
     assign snoop_port_i.ac = axi_resp_i.ac;
     assign snoop_port_i.ac_valid = axi_resp_i.ac_valid;
     assign snoop_port_i.cr_ready = axi_resp_i.cr_ready;
@@ -100,6 +119,15 @@ module std_cache_subsystem import ariane_pkg::*; import std_cache_pkg::*; #(
     `ACE_ASSIGN_RESP_STRUCT(ace_resp_bypass, axi_resp_bypass)
     `ACE_ASSIGN_RESP_STRUCT(ace_resp_data, axi_resp_data)
   end else begin
+    assign snoop_read_once_o = 1'b0;
+    assign snoop_read_shrd_o = 1'b0;
+    assign snoop_read_clean_o = 1'b0;
+    assign snoop_read_no_sd_o = 1'b0;
+    assign snoop_read_uniq_o = 1'b0;
+    assign snoop_clean_shrd_o = 1'b0;
+    assign snoop_clean_invld_o = 1'b0;
+    assign snoop_clean_uniq_o = 1'b0;
+    assign snoop_make_invld_o = 1'b0;
     assign snoop_port_i = '0;
     `AXI_ASSIGN_REQ_STRUCT(axi_req_bypass, ace_req_bypass)
     `AXI_ASSIGN_REQ_STRUCT(axi_req_data, ace_req_data)
