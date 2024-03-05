@@ -42,6 +42,15 @@ module perf_counters import ariane_pkg::*; #(
   input  logic                                    eret_i,
   input  bp_resolve_t                             resolved_branch_i,
   // for newly added events
+  input  logic                                    snoop_read_once_i,
+  input  logic                                    snoop_read_shrd_i,
+  input  logic                                    snoop_read_clean_i,
+  input  logic                                    snoop_read_no_sd_i,
+  input  logic                                    snoop_read_uniq_i,
+  input  logic                                    snoop_clean_shrd_i,
+  input  logic                                    snoop_clean_invld_i,
+  input  logic                                    snoop_clean_uniq_i,
+  input  logic                                    snoop_make_invld_i,
   input  exception_t                              branch_exceptions_i,  //Branch exceptions->execute unit-> branch_exception_o
   input  icache_dreq_i_t                          l1_icache_access_i,
   input  dcache_req_i_t[2:0]                      l1_dcache_access_i,
@@ -93,31 +102,40 @@ module perf_counters import ariane_pkg::*; #(
 
       for(int unsigned i = 1; i <= MHPMCounterNum; i++) begin
         case(mhpmevent_q[i])
-           5'b00000 : events[i] = 0;
-           5'b00001 : events[i] = l1_icache_miss_i;//L1 I-Cache misses
-           5'b00010 : events[i] = l1_dcache_miss_i;//L1 D-Cache misses
-           5'b00011 : events[i] = itlb_miss_i;//ITLB misses
-           5'b00100 : events[i] = dtlb_miss_i;//DTLB misses
-           5'b00101 : events[i] = |load_event;
-           5'b00110 : events[i] = |store_event;
-           5'b00111 : events[i] = ex_i.valid;//Exceptions
-           5'b01000 : events[i] = eret_i;//Exception handler returns
-           5'b01001 : events[i] = |branch_event;
-           5'b01010 : events[i] = resolved_branch_i.valid && resolved_branch_i.is_mispredict;//Branch mispredicts
-           5'b01011 : events[i] = branch_exceptions_i.valid;//Branch exceptions
+           6'b000000 : events[i] = 0;
+           6'b000001 : events[i] = l1_icache_miss_i;//L1 I-Cache misses
+           6'b000010 : events[i] = l1_dcache_miss_i;//L1 D-Cache misses
+           6'b000011 : events[i] = itlb_miss_i;//ITLB misses
+           6'b000100 : events[i] = dtlb_miss_i;//DTLB misses
+           6'b000101 : events[i] = |load_event;
+           6'b000110 : events[i] = |store_event;
+           6'b000111 : events[i] = ex_i.valid;//Exceptions
+           6'b001000 : events[i] = eret_i;//Exception handler returns
+           6'b001001 : events[i] = |branch_event;
+           6'b001010 : events[i] = resolved_branch_i.valid && resolved_branch_i.is_mispredict;//Branch mispredicts
+           6'b001011 : events[i] = branch_exceptions_i.valid;//Branch exceptions
                    // The standard software calling convention uses register x1 to hold the return address on a call
                    // the unconditional jump is decoded as ADD op
-           5'b01100 : events[i] = |call_event;
-           5'b01101 : events[i] = |return_event;
-           5'b01110 : events[i] = sb_full_i;//MSB Full
-           5'b01111 : events[i] = if_empty_i;//Instruction fetch Empty
-           5'b10000 : events[i] = l1_icache_access_i.req;//L1 I-Cache accesses
-           5'b10001 : events[i] = l1_dcache_access_i[0].data_req || l1_dcache_access_i[1].data_req || l1_dcache_access_i[2].data_req;//L1 D-Cache accesses
-           5'b10010 : events[i] = (l1_dcache_miss_i && miss_vld_bits_i[0] == 8'hFF) || (l1_dcache_miss_i && miss_vld_bits_i[1] == 8'hFF) || (l1_dcache_miss_i && miss_vld_bits_i[2] == 8'hFF);//eviction
-           5'b10011 : events[i] = i_tlb_flush_i;//I-TLB flush
-           5'b10100 : events[i] = |int_event;
-           5'b10101 : events[i] = |fp_event;
-           5'b10110 : events[i] = stall_issue_i;//Pipeline bubbles
+           6'b001100 : events[i] = |call_event;
+           6'b001101 : events[i] = |return_event;
+           6'b001110 : events[i] = sb_full_i;//MSB Full
+           6'b001111 : events[i] = if_empty_i;//Instruction fetch Empty
+           6'b010000 : events[i] = l1_icache_access_i.req;//L1 I-Cache accesses
+           6'b010001 : events[i] = l1_dcache_access_i[0].data_req || l1_dcache_access_i[1].data_req || l1_dcache_access_i[2].data_req;//L1 D-Cache accesses
+           6'b010010 : events[i] = (l1_dcache_miss_i && miss_vld_bits_i[0] == 8'hFF) || (l1_dcache_miss_i && miss_vld_bits_i[1] == 8'hFF) || (l1_dcache_miss_i && miss_vld_bits_i[2] == 8'hFF);//eviction
+           6'b010011 : events[i] = i_tlb_flush_i;//I-TLB flush
+           6'b010100 : events[i] = |int_event;
+           6'b010101 : events[i] = |fp_event;
+           6'b010110 : events[i] = stall_issue_i;//Pipeline bubbles
+           6'b010111 : events[i] = snoop_read_once_i;
+           6'b011000 : events[i] = snoop_read_shrd_i;
+           6'b011001 : events[i] = snoop_read_clean_i;
+           6'b011010 : events[i] = snoop_read_no_sd_i;
+           6'b011011 : events[i] = snoop_read_uniq_i;
+           6'b011110 : events[i] = snoop_clean_shrd_i;
+           6'b011111 : events[i] = snoop_clean_invld_i;
+           6'b100000 : events[i] = snoop_clean_uniq_i;
+           6'b100001 : events[i] = snoop_make_invld_i;
            default:   events[i] = 0;
          endcase
        end
