@@ -234,6 +234,15 @@ module cva6 import ariane_pkg::*; #(
   riscv::xlen_t             data_csr_perf, data_perf_csr;
   logic                     we_csr_perf;
 
+  logic                     snoop_read_once;
+  logic                     snoop_read_shrd;
+  logic                     snoop_read_clean;
+  logic                     snoop_read_no_sd;
+  logic                     snoop_read_uniq;
+  logic                     snoop_clean_shrd;
+  logic                     snoop_clean_invld;
+  logic                     snoop_clean_uniq;
+  logic                     snoop_make_invld;
   logic                     icache_flush_ctrl_cache;
   logic                     itlb_miss_ex_perf;
   logic                     dtlb_miss_ex_perf;
@@ -750,6 +759,15 @@ module cva6 import ariane_pkg::*; #(
     .ex_i                ( ex_commit                 ),
     .eret_i              ( eret                      ),
     .resolved_branch_i   ( resolved_branch           ),
+    .snoop_read_once_i   ( snoop_read_once           ),
+    .snoop_read_shrd_i   ( snoop_read_shrd           ),
+    .snoop_read_clean_i  ( snoop_read_clean          ),
+    .snoop_read_no_sd_i  ( snoop_read_no_sd          ),
+    .snoop_read_uniq_i   ( snoop_read_uniq           ),
+    .snoop_clean_shrd_i  ( snoop_clean_shrd          ),
+    .snoop_clean_invld_i ( snoop_clean_invld         ),
+    .snoop_clean_uniq_i  ( snoop_clean_uniq          ),
+    .snoop_make_invld_i  ( snoop_make_invld          ),
     .branch_exceptions_i ( flu_exception_ex_id       ),
     .l1_icache_access_i  ( icache_dreq_if_cache      ),
     .l1_dcache_access_i  ( dcache_req_ports_ex_cache ),
@@ -912,6 +930,16 @@ module cva6 import ariane_pkg::*; #(
     .dcache_miss_o         ( dcache_miss_cache_perf      ),
     // this is statically set to 1 as the std_cache does not have a wbuffer
     .wbuffer_empty_o       ( dcache_commit_wbuffer_empty ),
+    // Perf counters
+    .snoop_read_once_o     ( snoop_read_once             ),
+    .snoop_read_shrd_o     ( snoop_read_shrd             ),
+    .snoop_read_clean_o    ( snoop_read_clean            ),
+    .snoop_read_no_sd_o    ( snoop_read_no_sd            ),
+    .snoop_read_uniq_o     ( snoop_read_uniq             ),
+    .snoop_clean_shrd_o    ( snoop_clean_shrd            ),
+    .snoop_clean_invld_o   ( snoop_clean_invld           ),
+    .snoop_clean_uniq_o    ( snoop_clean_uniq            ),
+    .snoop_make_invld_o    ( snoop_make_invld            ),
     // from PTW, Load Unit  and Store Unit
     .dcache_req_ports_i    ( dcache_req_ports_ex_cache   ),
     .dcache_req_ports_o    ( dcache_req_ports_cache_ex   ),
