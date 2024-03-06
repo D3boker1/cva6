@@ -31,7 +31,7 @@ module miss_handler import ariane_pkg::*; import std_cache_pkg::*; #(
     input  logic                                        flush_i,      // flush request
     output logic                                        flush_ack_o,  // acknowledge successful flush
     output logic                                        miss_o,
-    output logic                                        miss_id_o,
+    output logic [1:0]                                  miss_id_o,
     input  logic                                        busy_i,       // dcache is busy with something
     input  logic                                        init_ni,      // do not init after reset
     output logic                                        flushing_o,

@@ -174,27 +174,27 @@ module perf_counters import ariane_pkg::*; #(
       end
 
      //Read
-     if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_COUNTER_3)) | (addr_i < ( csr_addr_t'(riscv::CSR_MHPM_COUNTER_3) + MHPMCounterNum)) ) begin
+     if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_COUNTER_3)) && (addr_i < ( csr_addr_t'(riscv::CSR_MHPM_COUNTER_3) + MHPMCounterNum)) ) begin
         if (riscv::XLEN == 32) begin
            data_o = generic_counter_q[addr_i-riscv::CSR_MHPM_COUNTER_3 + 1][31:0];
         end else begin
            data_o = generic_counter_q[addr_i-riscv::CSR_MHPM_COUNTER_3 + 1];
         end
-     end else if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_COUNTER_3H)) | (addr_i < ( csr_addr_t'(riscv::CSR_MHPM_COUNTER_3H) + MHPMCounterNum)) ) begin
+     end else if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_COUNTER_3H)) && (addr_i < ( csr_addr_t'(riscv::CSR_MHPM_COUNTER_3H) + MHPMCounterNum)) ) begin
         if (riscv::XLEN == 32) begin
            data_o = generic_counter_q[addr_i-riscv::CSR_MHPM_COUNTER_3H + 1][63:32];
         end else begin
            read_access_exception = 1'b1;
         end
-     end else if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_EVENT_3)) | (addr_i < (csr_addr_t'(riscv::CSR_MHPM_EVENT_3) + MHPMCounterNum)) ) begin
+     end else if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_EVENT_3)) && (addr_i < (csr_addr_t'(riscv::CSR_MHPM_EVENT_3) + MHPMCounterNum)) ) begin
          data_o = mhpmevent_q[addr_i-riscv::CSR_MHPM_EVENT_3 + 1] ;
-     end else if( (addr_i >= csr_addr_t'(riscv::CSR_HPM_COUNTER_3)) | (addr_i < (csr_addr_t'(riscv::CSR_HPM_COUNTER_3) + MHPMCounterNum)) ) begin
+     end else if( (addr_i >= csr_addr_t'(riscv::CSR_HPM_COUNTER_3)) && (addr_i < (csr_addr_t'(riscv::CSR_HPM_COUNTER_3) + MHPMCounterNum)) ) begin
         if(riscv::XLEN == 32) begin
            data_o = generic_counter_q[addr_i-riscv::CSR_HPM_COUNTER_3 + 1][31:0];
         end else begin
            data_o = generic_counter_q[addr_i-riscv::CSR_HPM_COUNTER_3 + 1];
         end
-     end else if( (addr_i > csr_addr_t'(riscv::CSR_HPM_COUNTER_3H)) | (addr_i < (csr_addr_t'(riscv::CSR_HPM_COUNTER_3H) + MHPMCounterNum)) ) begin
+     end else if( (addr_i > csr_addr_t'(riscv::CSR_HPM_COUNTER_3H)) && (addr_i < (csr_addr_t'(riscv::CSR_HPM_COUNTER_3H) + MHPMCounterNum)) ) begin
         if(riscv::XLEN == 32) begin
            data_o = generic_counter_q[addr_i-riscv::CSR_MHPM_COUNTER_3H + 1][63:32];
         end else begin
@@ -204,19 +204,19 @@ module perf_counters import ariane_pkg::*; #(
 
      //Write
      if(we_i) begin
-        if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_COUNTER_3)) | (addr_i < (csr_addr_t'(riscv::CSR_MHPM_COUNTER_3) + MHPMCounterNum)) ) begin
+        if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_COUNTER_3)) && (addr_i < (csr_addr_t'(riscv::CSR_MHPM_COUNTER_3) + MHPMCounterNum)) ) begin
            if (riscv::XLEN == 32) begin
               generic_counter_d[addr_i-riscv::CSR_MHPM_COUNTER_3 + 1][31:0] = data_i;
            end else begin
               generic_counter_d[addr_i-riscv::CSR_MHPM_COUNTER_3 + 1] = data_i;
            end
-        end else if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_COUNTER_3H)) | (addr_i < (csr_addr_t'(riscv::CSR_MHPM_COUNTER_3H) + MHPMCounterNum)) ) begin
+        end else if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_COUNTER_3H)) && (addr_i < (csr_addr_t'(riscv::CSR_MHPM_COUNTER_3H) + MHPMCounterNum)) ) begin
            if (riscv::XLEN == 32) begin
               generic_counter_d[addr_i-riscv::CSR_MHPM_COUNTER_3H + 1][63:32] = data_i;
            end else begin
               update_access_exception = 1'b1;
            end
-        end else if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_EVENT_3)) | (addr_i < csr_addr_t'(riscv::CSR_MHPM_EVENT_3) + MHPMCounterNum) ) begin
+        end else if( (addr_i >= csr_addr_t'(riscv::CSR_MHPM_EVENT_3)) && (addr_i < csr_addr_t'(riscv::CSR_MHPM_EVENT_3) + MHPMCounterNum) ) begin
             mhpmevent_d[addr_i-riscv::CSR_MHPM_EVENT_3 + 1] = data_i;
         end
      end
