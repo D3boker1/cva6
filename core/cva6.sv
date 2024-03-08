@@ -242,15 +242,24 @@ module cva6 import ariane_pkg::*; #(
   logic                     dc_clean_invalid_miss;
   logic                     dc_flushing;
 
-  logic                     snoop_read_once;
-  logic                     snoop_read_shrd;
-  logic                     snoop_read_clean;
-  logic                     snoop_read_no_sd;
-  logic                     snoop_read_uniq;
-  logic                     snoop_clean_shrd;
-  logic                     snoop_clean_invld;
-  logic                     snoop_clean_uniq;
-  logic                     snoop_make_invld;
+  logic                     in_snoop_read_once;
+  logic                     in_snoop_read_shrd;
+  logic                     in_snoop_read_clean;
+  logic                     in_snoop_read_no_sd;
+  logic                     in_snoop_read_uniq;
+  logic                     in_snoop_clean_shrd;
+  logic                     in_snoop_clean_invld;
+  logic                     in_snoop_clean_uniq;
+  logic                     in_snoop_make_invld;
+
+  logic                     out_snoop_read_once;
+  logic                     out_snoop_read_shrd;
+  logic                     out_snoop_read_uniq;
+  logic                     out_snoop_read_nosnoop;
+  logic                     out_snoop_clean_uniq;
+  logic                     out_snoop_wr_uniq;
+  logic                     out_snoop_wr_nosnoop;
+  logic                     out_snoop_wr_back;
 
   logic                     icache_flush_ctrl_cache;
   logic                     itlb_miss_ex_perf;
@@ -775,15 +784,23 @@ module cva6 import ariane_pkg::*; #(
     .dc_clean_invalid_hit_i  ( dc_clean_invalid_hit  ),
     .dc_clean_invalid_miss_i ( dc_clean_invalid_miss ),
     .dc_flushing_i           ( dc_flushing           ),
-    .snoop_read_once_i   ( snoop_read_once           ),
-    .snoop_read_shrd_i   ( snoop_read_shrd           ),
-    .snoop_read_clean_i  ( snoop_read_clean          ),
-    .snoop_read_no_sd_i  ( snoop_read_no_sd          ),
-    .snoop_read_uniq_i   ( snoop_read_uniq           ),
-    .snoop_clean_shrd_i  ( snoop_clean_shrd          ),
-    .snoop_clean_invld_i ( snoop_clean_invld         ),
-    .snoop_clean_uniq_i  ( snoop_clean_uniq          ),
-    .snoop_make_invld_i  ( snoop_make_invld          ),
+    .in_snoop_read_once_i   ( in_snoop_read_once     ),
+    .in_snoop_read_shrd_i   ( in_snoop_read_shrd     ),
+    .in_snoop_read_clean_i  ( in_snoop_read_clean    ),
+    .in_snoop_read_no_sd_i  ( in_snoop_read_no_sd    ),
+    .in_snoop_read_uniq_i   ( in_snoop_read_uniq     ),
+    .in_snoop_clean_shrd_i  ( in_snoop_clean_shrd    ),
+    .in_snoop_clean_invld_i ( in_snoop_clean_invld   ),
+    .in_snoop_clean_uniq_i  ( in_snoop_clean_uniq    ),
+    .in_snoop_make_invld_i  ( in_snoop_make_invld    ),
+    .out_snoop_read_once_i    ( out_snoop_read_once   ),
+    .out_snoop_read_shrd_i    ( out_snoop_read_shrd   ),
+    .out_snoop_read_uniq_i    ( out_snoop_read_uniq   ),
+    .out_snoop_read_nosnoop_i ( out_snoop_read_nosnoop),
+    .out_snoop_clean_uniq_i   ( out_snoop_clean_uniq  ),
+    .out_snoop_wr_uniq_i      ( out_snoop_wr_uniq     ),
+    .out_snoop_wr_nosnoop_i   ( out_snoop_wr_nosnoop  ),
+    .out_snoop_wr_back_i      ( out_snoop_wr_back     ),
     .branch_exceptions_i ( flu_exception_ex_id       ),
     .l1_icache_access_i  ( icache_dreq_if_cache      ),
     .l1_dcache_access_i  ( dcache_req_ports_ex_cache ),
@@ -954,15 +971,23 @@ module cva6 import ariane_pkg::*; #(
     .dc_clean_invalid_hit_o  ( dc_clean_invalid_hit      ),
     .dc_clean_invalid_miss_o ( dc_clean_invalid_miss     ),
     .dc_flushing_o           ( dc_flushing               ),
-    .snoop_read_once_o     ( snoop_read_once             ),
-    .snoop_read_shrd_o     ( snoop_read_shrd             ),
-    .snoop_read_clean_o    ( snoop_read_clean            ),
-    .snoop_read_no_sd_o    ( snoop_read_no_sd            ),
-    .snoop_read_uniq_o     ( snoop_read_uniq             ),
-    .snoop_clean_shrd_o    ( snoop_clean_shrd            ),
-    .snoop_clean_invld_o   ( snoop_clean_invld           ),
-    .snoop_clean_uniq_o    ( snoop_clean_uniq            ),
-    .snoop_make_invld_o    ( snoop_make_invld            ),
+    .in_snoop_read_once_o    ( in_snoop_read_once        ),
+    .in_snoop_read_shrd_o    ( in_snoop_read_shrd        ),
+    .in_snoop_read_clean_o   ( in_snoop_read_clean       ),
+    .in_snoop_read_no_sd_o   ( in_snoop_read_no_sd       ),
+    .in_snoop_read_uniq_o    ( in_snoop_read_uniq        ),
+    .in_snoop_clean_shrd_o   ( in_snoop_clean_shrd       ),
+    .in_snoop_clean_invld_o  ( in_snoop_clean_invld      ),
+    .in_snoop_clean_uniq_o   ( in_snoop_clean_uniq       ),
+    .in_snoop_make_invld_o   ( in_snoop_make_invld       ),
+    .out_snoop_read_once_o   ( out_snoop_read_once       ),
+    .out_snoop_read_shrd_o   ( out_snoop_read_shrd       ),
+    .out_snoop_read_uniq_o   ( out_snoop_read_uniq       ),
+    .out_snoop_read_nosnoop_o( out_snoop_read_nosnoop    ),
+    .out_snoop_clean_uniq_o  ( out_snoop_clean_uniq      ),
+    .out_snoop_wr_uniq_o     ( out_snoop_wr_uniq         ),
+    .out_snoop_wr_nosnoop_o  ( out_snoop_wr_nosnoop      ),
+    .out_snoop_wr_back_o     ( out_snoop_wr_back         ),
     // from PTW, Load Unit  and Store Unit
     .dcache_req_ports_i    ( dcache_req_ports_ex_cache   ),
     .dcache_req_ports_o    ( dcache_req_ports_cache_ex   ),

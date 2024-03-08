@@ -49,15 +49,23 @@ module perf_counters import ariane_pkg::*; #(
   input  logic                                    dc_clean_invalid_hit_i,
   input  logic                                    dc_clean_invalid_miss_i,
   input  logic                                    dc_flushing_i,
-  input  logic                                    snoop_read_once_i,
-  input  logic                                    snoop_read_shrd_i,
-  input  logic                                    snoop_read_clean_i,
-  input  logic                                    snoop_read_no_sd_i,
-  input  logic                                    snoop_read_uniq_i,
-  input  logic                                    snoop_clean_shrd_i,
-  input  logic                                    snoop_clean_invld_i,
-  input  logic                                    snoop_clean_uniq_i,
-  input  logic                                    snoop_make_invld_i,
+  input  logic                                    in_snoop_read_once_i,
+  input  logic                                    in_snoop_read_shrd_i,
+  input  logic                                    in_snoop_read_clean_i,
+  input  logic                                    in_snoop_read_no_sd_i,
+  input  logic                                    in_snoop_read_uniq_i,
+  input  logic                                    in_snoop_clean_shrd_i,
+  input  logic                                    in_snoop_clean_invld_i,
+  input  logic                                    in_snoop_clean_uniq_i,
+  input  logic                                    in_snoop_make_invld_i,
+  input  logic                                    out_snoop_read_once_i,
+  input  logic                                    out_snoop_read_shrd_i,
+  input  logic                                    out_snoop_read_uniq_i,
+  input  logic                                    out_snoop_read_nosnoop_i,
+  input  logic                                    out_snoop_clean_uniq_i,
+  input  logic                                    out_snoop_wr_uniq_i,
+  input  logic                                    out_snoop_wr_nosnoop_i,
+  input  logic                                    out_snoop_wr_back_i,
   input  exception_t                              branch_exceptions_i,  //Branch exceptions->execute unit-> branch_exception_o
   input  icache_dreq_i_t                          l1_icache_access_i,
   input  dcache_req_i_t[2:0]                      l1_dcache_access_i,
@@ -134,15 +142,15 @@ module perf_counters import ariane_pkg::*; #(
            6'b010100 : events[i] = |int_event;
            6'b010101 : events[i] = |fp_event;
            6'b010110 : events[i] = stall_issue_i;//Pipeline bubbles
-           6'b010111 : events[i] = snoop_read_once_i;
-           6'b011000 : events[i] = snoop_read_shrd_i;
-           6'b011001 : events[i] = snoop_read_clean_i;
-           6'b011010 : events[i] = snoop_read_no_sd_i;
-           6'b011011 : events[i] = snoop_read_uniq_i;
-           6'b011110 : events[i] = snoop_clean_shrd_i;
-           6'b011111 : events[i] = snoop_clean_invld_i;
-           6'b100000 : events[i] = snoop_clean_uniq_i;
-           6'b100001 : events[i] = snoop_make_invld_i;
+           6'b010111 : events[i] = in_snoop_read_once_i;
+           6'b011000 : events[i] = in_snoop_read_shrd_i;
+           6'b011001 : events[i] = in_snoop_read_clean_i;
+           6'b011010 : events[i] = in_snoop_read_no_sd_i;
+           6'b011011 : events[i] = in_snoop_read_uniq_i;
+           6'b011110 : events[i] = in_snoop_clean_shrd_i;
+           6'b011111 : events[i] = in_snoop_clean_invld_i;
+           6'b100000 : events[i] = in_snoop_clean_uniq_i;
+           6'b100001 : events[i] = in_snoop_make_invld_i;
            6'b100010 : events[i] = dc_hit_i;
            6'b100011 : events[i] = dc_write_hit_unique_i;
            6'b100100 : events[i] = dc_write_hit_shared_i;
@@ -150,6 +158,14 @@ module perf_counters import ariane_pkg::*; #(
            6'b100110 : events[i] = dc_clean_invalid_hit_i;
            6'b100111 : events[i] = dc_clean_invalid_miss_i;
            6'b101000 : events[i] = dc_flushing_i;
+           6'b101001 : events[i] = out_snoop_read_once_i;
+           6'b101010 : events[i] = out_snoop_read_shrd_i;
+           6'b101011 : events[i] = out_snoop_read_uniq_i;
+           6'b101100 : events[i] = out_snoop_read_nosnoop_i;
+           6'b101101 : events[i] = out_snoop_clean_uniq_i;
+           6'b101110 : events[i] = out_snoop_wr_uniq_i;
+           6'b101111 : events[i] = out_snoop_wr_nosnoop_i;
+           6'b110000 : events[i] = out_snoop_wr_back_i;
            default:   events[i] = 0;
          endcase
        end
