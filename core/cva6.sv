@@ -29,9 +29,18 @@ module cva6 import ariane_pkg::*; #(
   // Core ID, Cluster ID and boot address are considered more or less static
   input  logic [riscv::VLEN-1:0]       boot_addr_i,  // reset boot address
   input  logic [riscv::XLEN-1:0]       hart_id_i,    // hart id in a multicore environment (reflected in a CSR)
-
+  // IMSIC
+  output  logic [1:0]                                                     imsic_priv_lvl_o    ,
+  output  logic [ariane_pkg::NrVSIntpFilesW:0]                            imsic_vgein_o       ,
+  output  logic [32-1:0]                                                  imsic_addr_o        ,
+  output  logic [32-1:0]                                                  imsic_data_o        ,
+  output  logic                                                           imsic_we_o          ,
+  output  logic                                                           imsic_claim_o       ,
+  input   logic [32-1:0]                                                  imsic_data_i        ,
+  input   logic                                                           imsic_exception_i   ,
+  input   logic [ariane_pkg::NrIntpFiles-1:0][ariane_pkg::NrSourcesW-1:0] imsic_xtopei_i      ,
   // Interrupt inputs
-  input  logic [1:0]                   irq_i,        // level sensitive IR lines, mip & sip (async)
+  input  logic [ariane_pkg::NrIntpFiles-1:0] irq_i,  // level sensitive IR lines, mip & sip & vsip (async)
   input  logic                         ipi_i,        // inter-processor interrupts (async)
   // Timer facilities
   input  logic                         time_irq_i,   // timer interrupt in (async)
@@ -226,6 +235,9 @@ module cva6 import ariane_pkg::*; #(
   logic                     single_step_csr_commit;
   riscv::pmpcfg_t [15:0]    pmpcfg;
   logic [15:0][riscv::PLEN-3:0] pmpaddr;
+  logic [riscv::XLEN-1:0]   mtopi;
+  logic [riscv::XLEN-1:0]   stopi;
+  logic [riscv::XLEN-1:0]   vstopi;
   // ----------------------------
   // Performance Counters <-> *
   // ----------------------------
@@ -370,7 +382,10 @@ module cva6 import ariane_pkg::*; #(
     .tw_i                       ( tw_csr_id                  ),
     .vtw_i                      ( vtw_csr_id                 ),
     .tsr_i                      ( tsr_csr_id                 ),
-    .hu_i                       ( hu                         )
+    .hu_i                       ( hu                         ),
+    .mtopi_o                    ( mtopi                      ),
+    .stopi_o                    ( stopi                      ),
+    .vstopi_o                   ( vstopi                     )
   );
 
   logic [NR_WB_PORTS-1:0][TRANS_ID_BITS-1:0] trans_id_ex_id;
@@ -672,6 +687,9 @@ module cva6 import ariane_pkg::*; #(
     .frm_o                  ( frm_csr_id_issue_ex           ),
     .fprec_o                ( fprec_csr_ex                  ),
     .irq_ctrl_o             ( irq_ctrl_csr_id               ),
+    .mtopi_i                ( mtopi                         ),
+    .stopi_i                ( stopi                         ),
+    .vstopi_i               ( vstopi                        ),
     .clic_mode_o            ( clic_mode                     ),
     .mintstatus_o           ( mintstatus_csr                ),
     .mintthresh_o           ( mintthresh_csr                ),
