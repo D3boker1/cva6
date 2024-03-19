@@ -234,6 +234,14 @@ module cva6 import ariane_pkg::*; #(
   riscv::xlen_t             data_csr_perf, data_perf_csr;
   logic                     we_csr_perf;
 
+  logic                     dc_hit;
+  logic                     dc_write_hit_unique;
+  logic                     dc_write_hit_shared;
+  logic                     dc_write_miss;
+  logic                     dc_clean_invalid_hit;
+  logic                     dc_clean_invalid_miss;
+  logic                     dc_flushing;
+
   logic                     snoop_read_once;
   logic                     snoop_read_shrd;
   logic                     snoop_read_clean;
@@ -243,6 +251,7 @@ module cva6 import ariane_pkg::*; #(
   logic                     snoop_clean_invld;
   logic                     snoop_clean_uniq;
   logic                     snoop_make_invld;
+
   logic                     icache_flush_ctrl_cache;
   logic                     itlb_miss_ex_perf;
   logic                     dtlb_miss_ex_perf;
@@ -759,6 +768,13 @@ module cva6 import ariane_pkg::*; #(
     .ex_i                ( ex_commit                 ),
     .eret_i              ( eret                      ),
     .resolved_branch_i   ( resolved_branch           ),
+    .dc_hit_i                ( dc_hit                ),
+    .dc_write_hit_unique_i   ( dc_write_hit_unique   ),
+    .dc_write_hit_shared_i   ( dc_write_hit_shared   ),
+    .dc_write_miss_i         ( dc_write_miss         ),
+    .dc_clean_invalid_hit_i  ( dc_clean_invalid_hit  ),
+    .dc_clean_invalid_miss_i ( dc_clean_invalid_miss ),
+    .dc_flushing_i           ( dc_flushing           ),
     .snoop_read_once_i   ( snoop_read_once           ),
     .snoop_read_shrd_i   ( snoop_read_shrd           ),
     .snoop_read_clean_i  ( snoop_read_clean          ),
@@ -931,6 +947,13 @@ module cva6 import ariane_pkg::*; #(
     // this is statically set to 1 as the std_cache does not have a wbuffer
     .wbuffer_empty_o       ( dcache_commit_wbuffer_empty ),
     // Perf counters
+    .dc_hit_o                ( dc_hit                    ),
+    .dc_write_hit_unique_o   ( dc_write_hit_unique       ),
+    .dc_write_hit_shared_o   ( dc_write_hit_shared       ),
+    .dc_write_miss_o         ( dc_write_miss             ),
+    .dc_clean_invalid_hit_o  ( dc_clean_invalid_hit      ),
+    .dc_clean_invalid_miss_o ( dc_clean_invalid_miss     ),
+    .dc_flushing_o           ( dc_flushing               ),
     .snoop_read_once_o     ( snoop_read_once             ),
     .snoop_read_shrd_o     ( snoop_read_shrd             ),
     .snoop_read_clean_o    ( snoop_read_clean            ),

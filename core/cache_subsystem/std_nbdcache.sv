@@ -29,6 +29,13 @@ module std_nbdcache import std_cache_pkg::*; import ariane_pkg::*; #(
     input  logic                           flush_i,     // high until acknowledged
     output logic                           flush_ack_o, // send a single cycle acknowledge signal when the cache is flushed
     output logic                           miss_o,      // we missed on a LD/ST
+    output logic                           hit_o,
+    output logic                           write_hit_unique_o,
+    output logic                           write_hit_shared_o,
+    output logic                           write_miss_o,
+    output logic                           clean_invalid_hit_o,
+    output logic                           clean_invalid_miss_o,
+    output logic                           flushing_o,
     output logic                           busy_o,
     input  logic                           stall_i,   // stall new memory requests
     input  logic                           init_ni,
@@ -110,10 +117,22 @@ import std_cache_pkg::*;
     // Busy signals
     logic miss_handler_busy;
 
+    logic [2:0] hit;
+    logic [2:0] uniq;
+    logic [1:0] miss_id;
+
     readshared_done_t readshared_done;
     logic [2:0]       updating_cache;
 
     assign busy_o = |busy | miss_handler_busy;
+
+    assign hit_o = |hit;
+
+    assign flushing_o = flushing;
+
+    assign write_hit_unique_o = hit[2] && uniq[2];
+    assign write_hit_shared_o = hit[2] && !uniq[2];
+    assign write_miss_o = miss_o && (miss_id == 2);
 
     // ------------------
     // Cache Controller
@@ -146,6 +165,8 @@ import std_cache_pkg::*;
         .flushing_i           ( flushing              ),
         .amo_valid_i          ( serving_amo           ),
         .amo_addr_i           ( serving_amo_addr      ),
+        .clean_invalid_hit_o  ( clean_invalid_hit_o   ),
+        .clean_invalid_miss_o ( clean_invalid_miss_o  ),
         .*
     );
 
@@ -156,8 +177,8 @@ import std_cache_pkg::*;
             ) i_cache_ctrl (
                 .bypass_i              ( ~enable_i            ),
                 .busy_o                ( busy            [i]  ),
-                .hit_o                 ( /* NC */             ),
-                .unique_o              ( /* NC */             ),
+                .hit_o                 ( hit[i-1]             ),
+                .unique_o              ( uniq[i-1]            ),
                 .stall_i               ( stall_i | flush_i    ),
                 // from core
                 .req_port_i            ( req_ports_i     [i-1] ),
@@ -238,6 +259,7 @@ import std_cache_pkg::*;
         .be_o                   ( be              [0]  ),
         .data_o                 ( wdata           [0]  ),
         .we_o                   ( we              [0]  ),
+        .miss_id_o              ( miss_id              ),
         .axi_bypass_o,
         .axi_bypass_i,
         .axi_data_o,

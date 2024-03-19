@@ -56,6 +56,13 @@ module std_cache_subsystem import ariane_pkg::*; import std_cache_pkg::*; #(
     output logic                           dcache_miss_o,          // we missed on a ld/st
     output logic                           wbuffer_empty_o,        // statically set to 1, as there is no wbuffer in this cache system
     // Perf counters
+    output logic                           dc_write_hit_unique_o,
+    output logic                           dc_write_hit_shared_o,
+    output logic                           dc_write_miss_o,
+    output logic                           dc_clean_invalid_hit_o,
+    output logic                           dc_clean_invalid_miss_o,
+    output logic                           dc_flushing_o,
+    output logic                           dc_hit_o,
     output logic                           snoop_read_once_o,
     output logic                           snoop_read_shrd_o,
     output logic                           snoop_read_clean_o,
@@ -185,6 +192,13 @@ module std_cache_subsystem import ariane_pkg::*; import std_cache_pkg::*; #(
       .flush_ack_o  ( dcache_flush_ack_o     ),
       .miss_o       ( dcache_miss_o          ),
       .busy_o       ( dcache_busy            ),
+      .hit_o                ( dc_hit_o                ),
+      .write_hit_unique_o   ( dc_write_hit_unique_o   ),
+      .write_hit_shared_o   ( dc_write_hit_shared_o   ),
+      .write_miss_o         ( dc_write_miss_o         ),
+      .clean_invalid_hit_o  ( dc_clean_invalid_hit_o  ),
+      .clean_invalid_miss_o ( dc_clean_invalid_miss_o ),
+      .flushing_o           ( dc_flushing_o           ),
       .stall_i      ( stall_i                ),
       .init_ni      ( init_ni                ),
       .axi_bypass_o ( ace_req_bypass         ),
