@@ -10,7 +10,7 @@ if [ "$BOARD" = "genesys2" ]; then
   echo "Genesys II"
   export XILINX_PART="xc7k325tffg900-2"
   export XILINX_BOARD="digilentinc.com:genesys2:part0:1.1"
-  export CLK_PERIOD_NS="20"
+  export CLK_PERIOD_NS="25"
 fi
 
 if [ "$BOARD" = "kc705" ]; then
