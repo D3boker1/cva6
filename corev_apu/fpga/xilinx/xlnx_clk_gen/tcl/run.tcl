@@ -13,11 +13,11 @@ set_property -dict [list CONFIG.PRIM_IN_FREQ {200.000} \
                         CONFIG.CLKOUT2_USED {true} \
                         CONFIG.CLKOUT3_USED {true} \
                         CONFIG.CLKOUT4_USED {true} \
-                        CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {50} \
+                        CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {40} \
                         CONFIG.CLKOUT2_REQUESTED_OUT_FREQ {125} \
                         CONFIG.CLKOUT3_REQUESTED_OUT_FREQ {125} \
                         CONFIG.CLKOUT3_REQUESTED_PHASE {90.000} \
-                        CONFIG.CLKOUT4_REQUESTED_OUT_FREQ {50} \
+                        CONFIG.CLKOUT4_REQUESTED_OUT_FREQ {40} \
                         CONFIG.CLKIN1_JITTER_PS {50.0} \
                        ] [get_ips $ipName]
 
