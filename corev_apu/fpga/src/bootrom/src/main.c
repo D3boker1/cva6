@@ -5,7 +5,7 @@
 
 int main()
 {
-    init_uart(40000000, 76800);
+    init_uart(40000000, 38400);
     print_uart("Hello World!\r\n");
 
     int res = gpt_find_boot_partition((uint8_t *)0x80000000UL, 2 * 16384);
