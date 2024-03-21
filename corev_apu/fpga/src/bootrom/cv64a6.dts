@@ -90,7 +90,7 @@
     uart@10000000 {
       compatible = "ns16550a";
       reg = <0x0 0x10000000 0x0 0x1000>;
-      clock-frequency = <50000000>;
+      clock-frequency = <40000000>;
       current-speed = <115200>;
       interrupt-parent = <&PLIC0>;
       interrupts = <1>;
