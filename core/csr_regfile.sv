@@ -29,7 +29,7 @@ module csr_regfile import ariane_pkg::*; #(
     output logic                  flush_o,
     output logic                  halt_csr_o,                 // halt requested
     // commit acknowledge
-    input  scoreboard_entry_t [NrCommitPorts-1:0] commit_instr_i, // the instruction we want to commit
+    (*mark_debug = "true"*) input  scoreboard_entry_t [NrCommitPorts-1:0] commit_instr_i, // the instruction we want to commit
     input  logic [NrCommitPorts-1:0]              commit_ack_i,   // Commit acknowledged a instruction -> increase instret CSR
     // Core and Cluster ID
     input  logic[riscv::VLEN-1:0] boot_addr_i,                // Address from which to start booting, mtvec is set to the same address
@@ -37,10 +37,10 @@ module csr_regfile import ariane_pkg::*; #(
     // we are taking an exception
     input exception_t             ex_i,                       // We've got an exception from the commit stage, take it
 
-    input  fu_op                  csr_op_i,                   // Operation to perform on the CSR file
-    input  logic  [11:0]          csr_addr_i,                 // Address of the register to read/write
-    input  logic[riscv::XLEN-1:0] csr_wdata_i,                // Write data in
-    output logic[riscv::XLEN-1:0] csr_rdata_o,                // Read data out
+    (*mark_debug = "true"*) input  fu_op                  csr_op_i,                   // Operation to perform on the CSR file
+    (*mark_debug = "true"*) input  logic  [11:0]          csr_addr_i,                 // Address of the register to read/write
+    (*mark_debug = "true"*) input  logic[riscv::XLEN-1:0] csr_wdata_i,                // Write data in
+    (*mark_debug = "true"*) output logic[riscv::XLEN-1:0] csr_rdata_o,                // Read data out
     input  logic                  dirty_fp_state_i,           // Mark the FP sate as dirty
     input  logic                  csr_write_fflags_i,         // Write fflags register e.g.: we are retiring a floating point instruction
     input  logic  [riscv::VLEN-1:0]  pc_i,                    // PC of instruction accessing the CSR
@@ -60,7 +60,7 @@ module csr_regfile import ariane_pkg::*; #(
     output logic [2:0]            frm_o,                      // Floating-Point Dynamic Rounding Mode
     output logic [6:0]            fprec_o,                    // Floating-Point Precision Control
     // Decoder
-    output irq_ctrl_t             irq_ctrl_o,                 // interrupt management to id stage
+    (*mark_debug = "true"*) output irq_ctrl_t             irq_ctrl_o,                 // interrupt management to id stage
     // MMU
     output logic                  en_translation_o,           // enable VA translation
     output logic                  en_g_translation_o,         // enable G-Stage translation
@@ -80,7 +80,7 @@ module csr_regfile import ariane_pkg::*; #(
     output logic[riscv::PPNW-1:0] hgatp_ppn_o,
     output logic [VmidWidth-1:0]  vmid_o,
     // external interrupts
-    input  logic [1:0]            irq_i,                      // external interrupt in
+    input  logic [ariane_soc::NrIntpFiles-1:0] irq_i,                      // external interrupt in
     input  logic                  clic_irq_shv_i,             // selective hardware vectoring bit
     input  logic                  ipi_i,                      // inter processor interrupt -> connected to machine mode sw
     input  logic                  debug_req_i,                // debug request in
@@ -101,6 +101,20 @@ module csr_regfile import ariane_pkg::*; #(
     // Caches
     output logic                  icache_en_o,                // L1 ICache Enable
     output logic                  dcache_en_o,                // L1 DCache Enable
+    // From Decoder
+    (*mark_debug = "true"*) input  logic [riscv::XLEN-1:0]                                              mtopi_i             ,
+    (*mark_debug = "true"*) input  logic [riscv::XLEN-1:0]                                              stopi_i             ,
+    (*mark_debug = "true"*) input  logic [riscv::XLEN-1:0]                                              vstopi_i            ,
+    // To/From IMSIC
+    (*mark_debug = "true"*) output  logic [1:0]                                                         imsic_priv_lvl_o    ,
+    (*mark_debug = "true"*) output  logic [ariane_soc::NrVSIntpFilesW:0]                                imsic_vgein_o       ,
+    (*mark_debug = "true"*) output  logic [32-1:0]                                                      imsic_addr_o        ,
+    (*mark_debug = "true"*) output  logic [32-1:0]                                                      imsic_data_o        ,
+    (*mark_debug = "true"*) output  logic                                                               imsic_we_o          ,
+    (*mark_debug = "true"*) output  logic                                                               imsic_claim_o       ,
+    (*mark_debug = "true"*) input   logic [32-1:0]                                                      imsic_data_i        ,
+    (*mark_debug = "true"*) input   logic                                                               imsic_exception_i   ,
+    (*mark_debug = "true"*) input   logic [ariane_soc::NrIntpFiles-1:0][ariane_soc::NrSourcesW-1:0]     imsic_xtopei_i      ,
     // fence.t
     output logic [31:0]           fence_t_pad_o,              // Padding time of fence.t relative to time interrupt
     output logic                  fence_t_src_sel_o,          // Pad relative to selected source
@@ -115,6 +129,16 @@ module csr_regfile import ariane_pkg::*; #(
     output logic [15:0][riscv::PLEN-3:0] pmpaddr_o,           // PMP addresses
     output logic [31:0] mcountinhibit_o
 );
+
+    // AIA Spec
+    localparam logic [riscv::XLEN-1:0]      AIA_CSR_DEF_PRIO = 1;
+    logic [7:0]                             miselect_d     , miselect_q     ; 
+    logic [7:0]                             siselect_d     , siselect_q     ; 
+    logic [7:0]                             vsiselect_d    , vsiselect_q    ; 
+    logic [1:0]                             rimsic_priv_lvl, wimsic_priv_lvl;
+    logic [32-1:0]                          rimsic_addr    , wimsic_addr    ;
+    logic [ariane_soc::NrVSIntpFilesW:0]    rimsic_vgein   , wimsic_vgein   ;
+
     // internal signal to keep track of access exceptions
     logic        read_access_exception, update_access_exception, privilege_violation;
     logic        virtual_read_access_exception, virtual_update_access_exception, virtual_privilege_violation;
@@ -253,6 +277,9 @@ module csr_regfile import ariane_pkg::*; #(
         virtual_read_access_exception = 1'b0;
         csr_rdata = '0;
         perf_addr_o = conv_csr_addr.address[11:0];
+        rimsic_addr = '0;
+        rimsic_vgein = '0;
+        rimsic_priv_lvl = '0;
 
         if (csr_read) begin
             unique case (conv_csr_addr.address)
@@ -512,6 +539,101 @@ module csr_regfile import ariane_pkg::*; #(
                 riscv::CSR_MENVCFG: csr_rdata = menvcfg_q[riscv::XLEN-1:0];
                 riscv::CSR_MENVCFGH: if (riscv::XLEN == 32) csr_rdata = menvcfg_q[63:32]; else read_access_exception = 1'b1;
                 riscv::CSR_MCOUNTINHIBIT:      csr_rdata = mcountinhibit_q;
+                // Smaia and Ssaia
+                riscv::CSR_MISELECT:           csr_rdata = {{riscv::XLEN-8{1'b0}}, miselect_q};
+                riscv::CSR_MIREG: begin
+                    case (miselect_q) inside
+                        [8'h30 : 8'h3F]: begin
+                            // Return 1 iprio array not implemented yet
+                            csr_rdata = AIA_CSR_DEF_PRIO;
+                        end
+                        [8'h70 : 8'hFF]: begin
+                            rimsic_addr         = {{32-8{1'b0}}, miselect_q}; 
+                            rimsic_priv_lvl     = riscv::PRIV_LVL_M;
+                            rimsic_vgein        = '0;
+                            csr_rdata           = {{riscv::XLEN-32{1'b0}}, imsic_data_i};
+                        end 
+                        default: read_access_exception = 1'b1;
+                    endcase
+                end
+                riscv::CSR_MTOPIE:             csr_rdata = ((imsic_xtopei_i[ariane_pkg::M_FILE] << 16)|
+                                                            imsic_xtopei_i[ariane_pkg::M_FILE]);
+                riscv::CSR_MTOPI:              csr_rdata = (mtopi_i == 0) ? '0 : 
+                                                           (((mtopi_i) << 16) | AIA_CSR_DEF_PRIO);
+                riscv::CSR_MVIEN:              csr_rdata = '0;
+                riscv::CSR_MVIP:               csr_rdata = '0;
+                riscv::CSR_SISELECT:           csr_rdata = {{riscv::XLEN-8{1'b0}}, siselect_q};
+                riscv::CSR_SIREG: begin
+                    case (siselect_q) inside
+                        [8'h30 : 8'h3F]: begin
+                            // Return 1 iprio array not implemented yet
+                            csr_rdata = AIA_CSR_DEF_PRIO;
+                        end
+                        [8'h70 : 8'hFF]: begin
+                            rimsic_addr         = {{32-8{1'b0}}, siselect_q}; 
+                            rimsic_priv_lvl     = riscv::PRIV_LVL_S;
+                            rimsic_vgein        = '0;
+                            csr_rdata           = {{riscv::XLEN-32{1'b0}}, imsic_data_i};
+                        end 
+                        default: read_access_exception = 1'b1;
+                    endcase
+                end
+                riscv::CSR_STOPIE:             csr_rdata = ((imsic_xtopei_i[ariane_pkg::S_FILE] << 16)|
+                                                             imsic_xtopei_i[ariane_pkg::S_FILE]);
+                riscv::CSR_STOPI:              csr_rdata = (stopi_i == 0) ? '0 : 
+                                                           ((stopi_i << 16) | AIA_CSR_DEF_PRIO);
+                riscv::CSR_VSISELECT: begin
+                    if(!ariane_pkg::RVH) begin
+                        read_access_exception = 1'b1;
+                    end else begin
+                        csr_rdata = {{riscv::XLEN-8{1'b0}}, vsiselect_q};
+                    end
+                end
+                riscv::CSR_VSIREG: begin
+                    if(~ariane_pkg::RVH) begin
+                        read_access_exception = 1'b1;
+                    end else begin
+                        case (vsiselect_q) inside
+                            [8'h70 : 8'hFF]: begin
+                                rimsic_addr         = {{32-8{1'b0}}, vsiselect_q}; 
+                                rimsic_priv_lvl     = riscv::PRIV_LVL_S;
+                                rimsic_vgein        = hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0];
+                                csr_rdata           = {{riscv::XLEN-32{1'b0}}, imsic_data_i};
+                            end 
+                            default: virtual_read_access_exception = 1'b1;
+                        endcase
+                    end
+                end
+                riscv::CSR_HVIEN: begin
+                    if(~ariane_pkg::RVH) read_access_exception = 1'b1;   
+                    else csr_rdata = '0;
+                end
+                riscv::CSR_HVICTL: begin
+                    if(~ariane_pkg::RVH) read_access_exception = 1'b1;   
+                    else csr_rdata = '0;
+                end
+                riscv::CSR_HVIPRIO1: begin
+                    if(~ariane_pkg::RVH) read_access_exception = 1'b1;   
+                    else csr_rdata = '0;
+                end
+                riscv::CSR_HVIPRIO2: begin
+                    if(~ariane_pkg::RVH) read_access_exception = 1'b1;   
+                    else csr_rdata = '0;
+                end
+                riscv::CSR_VSTOPEI: begin
+                    if(~ariane_pkg::RVH) read_access_exception = 1'b1;   
+                    else begin
+                        /** We should check the value of hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0]*/
+                        csr_rdata = ((imsic_xtopei_i[ariane_pkg::S_FILE + hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0]] << 16) 
+                                    | imsic_xtopei_i[ariane_pkg::S_FILE + hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0]]);
+                    end
+                end
+                riscv::CSR_VSTOPI: begin
+                    if(~ariane_pkg::RVH) read_access_exception = 1'b1;   
+                    else begin
+                        csr_rdata = (vstopi_i == 0) ? '0 : (((vstopi_i-1) << 16) | AIA_CSR_DEF_PRIO);
+                    end
+                end
                 // Counters and Timers
                 riscv::CSR_MCYCLE:             csr_rdata = cycle_q[riscv::XLEN-1:0];
                 riscv::CSR_MCYCLEH:            if (riscv::XLEN == 32) csr_rdata = cycle_q[63:32]; else read_access_exception = 1'b1;
@@ -852,6 +974,18 @@ module csr_regfile import ariane_pkg::*; #(
 
         pmpcfg_d                = pmpcfg_q;
         pmpaddr_d               = pmpaddr_q;
+
+        // AIA spec
+        miselect_d              = miselect_q;
+        siselect_d              = siselect_q;
+        vsiselect_d             = vsiselect_q;
+
+        wimsic_addr             = '0;
+        wimsic_priv_lvl         = '0;
+        wimsic_vgein            = '0;   
+        imsic_data_o            = '0; 
+        imsic_we_o              = '0;
+        imsic_claim_o           = '0; 
 
         // check for correct access rights and that we are writing
         if (csr_we) begin
@@ -1337,6 +1471,109 @@ module csr_regfile import ariane_pkg::*; #(
                     end
                 end
                 riscv::CSR_MCOUNTINHIBIT:      mcountinhibit_d = {csr_wdata[MHPMCounterNum+2:2], 1'b0, csr_wdata[0]};
+                // Smaia and Ssaia
+                riscv::CSR_MISELECT: miselect_d = csr_wdata[7:0];
+                riscv::CSR_MIREG: begin
+                    case (miselect_q) inside
+                        [8'h30 : 8'h3F]: begin
+                            // Do nothing, iprio array not implemented yet
+                        end
+                        [8'h70 : 8'hFF]: begin
+                            wimsic_addr         = {{32-8{1'b0}}, miselect_q}; 
+                            wimsic_priv_lvl     = riscv::PRIV_LVL_M;
+                            wimsic_vgein        = '0;
+                            imsic_data_o        = csr_wdata[31:0];
+                            imsic_we_o          = 1'b1;
+                        end 
+                        default: update_access_exception = 1'b1;
+                    endcase
+                end
+                riscv::CSR_MTOPIE: begin
+                    wimsic_priv_lvl     = riscv::PRIV_LVL_M;
+                    imsic_claim_o       = 1'b1; 
+                end
+                riscv::CSR_MVIEN:;  // Do nothing, not supported by openSBI
+                riscv::CSR_MVIP:;   // Do nothing, not supported by openSBI
+                riscv::CSR_SISELECT: siselect_d  = csr_wdata[7:0];
+                riscv::CSR_SIREG: begin
+                    case (siselect_q) inside
+                        [8'h30 : 8'h3F]: begin
+                            // Do nothing, iprio array not implemented yet
+                        end
+                        [8'h70 : 8'hFF]: begin
+                            wimsic_addr         = {{32-8{1'b0}}, siselect_q}; 
+                            wimsic_priv_lvl     = riscv::PRIV_LVL_S;
+                            wimsic_vgein        = '0;
+                            imsic_data_o        = csr_wdata[31:0];
+                            imsic_we_o          = 1'b1;
+                        end 
+                        default: update_access_exception = 1'b1;
+                    endcase
+                end
+                riscv::CSR_STOPIE: begin
+                    wimsic_priv_lvl     = riscv::PRIV_LVL_S;
+                    imsic_claim_o       = 1'b1;
+                end
+                riscv::CSR_VSISELECT: begin
+                    if(~ariane_pkg::RVH) begin 
+                        update_access_exception = 1'b1;
+                    end else begin
+                        vsiselect_d = csr_wdata[7:0];
+                    end
+                end
+                riscv::CSR_VSIREG: begin
+                    if(~ariane_pkg::RVH) begin 
+                        update_access_exception = 1'b1;
+                    end else begin
+                        case (vsiselect_q) inside
+                            [8'h70 : 8'hFF]: begin
+                                wimsic_addr         = {{32-8{1'b0}}, vsiselect_q}; 
+                                wimsic_priv_lvl     = riscv::PRIV_LVL_S;
+                                wimsic_vgein        = hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0];
+                                imsic_data_o        = csr_wdata[31:0];
+                                imsic_we_o          = 1'b1;
+                            end 
+                            default: virtual_update_access_exception = 1'b1;
+                        endcase
+                    end
+                end
+                riscv::CSR_HVIEN: begin
+                    if(~ariane_pkg::RVH) begin 
+                        update_access_exception = 1'b1;
+                    end else begin
+                        /** Do nothing, not supported yet */
+                    end
+                end
+                riscv::CSR_HVICTL: begin
+                    if(~ariane_pkg::RVH) begin 
+                        update_access_exception = 1'b1;
+                    end else begin
+                        /** Do nothing, not supported yet */
+                    end
+                end
+                riscv::CSR_HVIPRIO1: begin
+                    if(~ariane_pkg::RVH) begin 
+                        update_access_exception = 1'b1;
+                    end else begin
+                        /** Do nothing, not supported yet */
+                    end
+                end
+                riscv::CSR_HVIPRIO2: begin
+                    if(~ariane_pkg::RVH) begin 
+                        update_access_exception = 1'b1;
+                    end else begin
+                        /** Do nothing, not supported yet */
+                    end
+                end
+                riscv::CSR_VSTOPEI: begin
+                    if(~ariane_pkg::RVH) begin 
+                        update_access_exception = 1'b1;
+                    end else begin
+                        wimsic_priv_lvl     = riscv::PRIV_LVL_S;
+                        wimsic_vgein        = hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0];
+                        imsic_claim_o       = 1'b1; 
+                    end
+                end
                 // performance counters
                 riscv::CSR_MCYCLE:             cycle_d[riscv::XLEN-1:0] = csr_wdata;
                 riscv::CSR_MCYCLEH:            if (riscv::XLEN == 32) cycle_d[63:32] = csr_wdata; else update_access_exception = 1'b1;
@@ -1513,9 +1750,15 @@ module csr_regfile import ariane_pkg::*; #(
         // Machine Mode External Interrupt Pending
         mip_d[riscv::IRQ_M_EXT] = irq_i[0];
         // Machine software interrupt
-        mip_d[riscv::IRQ_M_SOFT] = ipi_i;
+        mip_d[riscv::IRQ_M_SOFT] = '0; // ipi_i;
         // Timer interrupt pending, coming from platform timer
         mip_d[riscv::IRQ_M_TIMER] = time_irq_i;
+
+        // We dont support > 1 VS interrupt files yet 
+        if (ariane_pkg::NrIntpFiles == 3) begin
+            // Virtual Supervisor Mode External Interrupt Pending 
+            mip_d[riscv::IRQ_VS_EXT] = irq_i[2];
+        end
 
         // -----------------------
         // Manage Exception Stack
@@ -1885,6 +2128,17 @@ module csr_regfile import ariane_pkg::*; #(
     end
 
     // ---------------------------
+    // IMSIC Output assign
+    // ---------------------------
+    /** Give priority to writes */
+    // This cannot be done this way. Read and write need to be able to happen at the same time
+    assign imsic_addr_o        = ((imsic_we_o == 1'b1) || (imsic_claim_o == 1'b1) ) ? wimsic_addr    : rimsic_addr;
+    // assign imsic_waddr_o        = wimsic_addr;
+    // assign imsic_raddr_o        = rimsic_addr;
+    assign imsic_priv_lvl_o    = ((imsic_we_o == 1'b1) || (imsic_claim_o == 1'b1) ) ? wimsic_priv_lvl: rimsic_priv_lvl;
+    assign imsic_vgein_o       = ((imsic_we_o == 1'b1) || (imsic_claim_o == 1'b1) ) ? wimsic_vgein   : rimsic_vgein;
+
+    // ---------------------------
     // CSR OP Select Logic
     // ---------------------------
     always_comb begin : csr_op_logic
@@ -2051,7 +2305,8 @@ module csr_regfile import ariane_pkg::*; #(
         wfi_d = wfi_q;
         // if there is any (enabled) interrupt pending un-stall the core
         // also un-stall if we want to enter debug mode
-        if (debug_req_i || (!clic_mode_o && (|(mip_q & mie_q) || irq_i[1])) || clic_irq_ready_o) begin
+        // if (debug_req_i || (!clic_mode_o && (|(mip_q & mie_q) || irq_i[1])) || clic_irq_ready_o) begin
+        if (|(mip_q & mie_q) || debug_req_i || irq_i[1]) begin
             wfi_d = 1'b0;
         // or alternatively if there is no exception pending and we are not in debug mode wait here
         // for the interrupt
@@ -2224,6 +2479,10 @@ module csr_regfile import ariane_pkg::*; #(
             fence_t_pad_q          <= {riscv::XLEN{1'b0}};
             fence_t_ceil_q         <= {riscv::XLEN{1'b0}};
             mcountinhibit_q        <= '0;
+            // AIA
+            miselect_q             <= '0;
+            siselect_q             <= '0;
+            vsiselect_q            <= '0;
             // supervisor mode registers
             sepc_q                 <= {riscv::XLEN{1'b0}};
             scause_q               <= {riscv::XLEN{1'b0}};
@@ -2298,6 +2557,10 @@ module csr_regfile import ariane_pkg::*; #(
             fence_t_pad_q          <= fence_t_pad_d;
             fence_t_ceil_q         <= fence_t_ceil_d;
             mcountinhibit_q        <= mcountinhibit_d;
+            // AIA
+            miselect_q             <= miselect_d;
+            siselect_q             <= siselect_d;
+            vsiselect_q            <= vsiselect_d;
             // supervisor mode registers
             sepc_q                 <= sepc_d;
             scause_q               <= scause_d;

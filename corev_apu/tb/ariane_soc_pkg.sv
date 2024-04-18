@@ -14,12 +14,18 @@ package ariane_soc;
   // M-Mode Hart, S-Mode Hart
   localparam int unsigned NumTargets = 2;
   // Uart, SPI, Ethernet, reserved
-  localparam int unsigned NumSources = 30;
+  localparam int unsigned NumSources = 32;
   localparam int unsigned MaxPriority = 7;
 
   // CLIC
   localparam int unsigned CLICNumInterruptSrc = 64;
   localparam int unsigned CLICIntCtlBits = 8;
+
+  // AIA
+  localparam int unsigned NrVSIntpFiles   = cva6_config_pkg::CVA6ConfigNrVSIntpFiles;
+  localparam int unsigned NrVSIntpFilesW  = cva6_config_pkg::CVA6ConfigNrVSIntpFilesW;
+  localparam int unsigned NrIntpFiles     = cva6_config_pkg::CVA6ConfigNrIntpFiles; 
+  localparam int unsigned NrSourcesW      = cva6_config_pkg::CVA6ConfigNrSourcesW;
 
   localparam int unsigned NumHarts = cva6_config_pkg::ArianeSoCNumHarts;
   localparam int unsigned NrSlaves = NumHarts + 1; // actually masters, but slaves on the crossbar
@@ -33,13 +39,14 @@ package ariane_soc;
     DRAM     = 1,
     GPIO     = 2,
     Ethernet = 3,
-    SPI      = 4,
-    Timer    = 5,
-    UART     = 6,
-    PLIC     = 7,
-    CLINT    = 8,
-    ROM      = 9,
-    Debug    = 10
+    IMSIC    = 4,
+    SPI      = 5,
+    Timer    = 6,
+    UART     = 7,
+    PLIC     = 8,
+    CLINT    = 9,
+    ROM      = 10,
+    Debug    = 11
   } axi_slaves_t;
 
   localparam NB_PERIPHERALS = Debug + 1;
@@ -52,6 +59,7 @@ package ariane_soc;
   localparam logic[63:0] UARTLength     = 64'h1000;
   localparam logic[63:0] TimerLength    = 64'h1000;
   localparam logic[63:0] SPILength      = 64'h800000;
+  localparam logic[63:0] IMSICLength    = 64'h800_0000;
   localparam logic[63:0] EthernetLength = 64'h10000;
   localparam logic[63:0] GPIOLength     = 64'h1000;
   localparam logic[63:0] DRAMLength     = 64'h40000000; // 1GByte of DDR (split between two chips on Genesys2)
@@ -68,6 +76,7 @@ package ariane_soc;
     UARTBase     = 64'h1000_0000,
     TimerBase    = 64'h1800_0000,
     SPIBase      = 64'h2000_0000,
+    IMSICBase    = 64'h2400_0000,
     EthernetBase = 64'h3000_0000,
     GPIOBase     = 64'h4000_0000,
     DRAMBase     = 64'h8000_0000,

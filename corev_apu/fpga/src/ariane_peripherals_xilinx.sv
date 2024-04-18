@@ -12,6 +12,8 @@
 
 `include "register_interface/assign.svh"
 `include "register_interface/typedef.svh"
+`include "axi/assign.svh"
+`include "axi/typedef.svh"
 
 module ariane_peripherals #(
     parameter int AxiAddrWidth = -1,
@@ -33,7 +35,17 @@ module ariane_peripherals #(
     AXI_BUS.Slave      gpio            ,
     AXI_BUS.Slave      ethernet        ,
     AXI_BUS.Slave      timer           ,
-    output logic [(ariane_soc::NumHarts-1):0][1:0] irq_o,
+    AXI_BUS.Slave      imsic           ,
+    input  logic [ariane_soc::NumHarts-1:0][1:0]                                  i_priv_lvl      ,
+    input  logic [ariane_soc::NumHarts-1:0][ariane_soc::NrVSIntpFilesW:0]         i_vgein         ,
+    input  logic [ariane_soc::NumHarts-1:0][32-1:0]                               i_imsic_addr   ,
+    input  logic [ariane_soc::NumHarts-1:0][32-1:0]                               i_imsic_data    ,
+    input  logic [ariane_soc::NumHarts-1:0]                                       i_imsic_we      ,
+    input  logic [ariane_soc::NumHarts-1:0]                                       i_imsic_claim   ,
+    output logic [ariane_soc::NumHarts-1:0][32-1:0]                               o_imsic_data    ,
+    output logic [ariane_soc::NumHarts-1:0][ariane_soc::NrIntpFiles-1:0][ariane_soc::NrSourcesW-1:0] o_xtopei,
+    output logic [ariane_soc::NumHarts-1:0]                                       o_imsic_exception,
+    output logic [ariane_soc::NumHarts-1:0][ariane_soc::NrIntpFiles-1:0]          irq_o            ,
     // UART
     input  logic       rx_i            ,
     output logic       tx_o            ,
@@ -62,7 +74,7 @@ module ariane_peripherals #(
 );
 
     // ---------------
-    // 1. PLIC
+    // 1. IRQC
     // ---------------
     logic [ariane_soc::NumSources-1:0] irq_sources;
 
@@ -172,20 +184,75 @@ module ariane_peripherals #(
     `REG_BUS_ASSIGN_TO_REQ(plic_req, reg_bus)
     `REG_BUS_ASSIGN_FROM_RSP(reg_bus, plic_rsp)
 
-    plic_top #(
-      .N_SOURCE    ( ariane_soc::NumSources  ),
-      .N_TARGET    ( (ariane_soc::NumTargets)*(ariane_soc::NumHarts) ),
-      .MAX_PRIO    ( ariane_soc::MaxPriority ),
-      .reg_req_t   ( plic_req_t              ),
-      .reg_rsp_t   ( plic_rsp_t              )
-    ) i_plic (
-      .clk_i,
-      .rst_ni,
-      .req_i         ( plic_req    ),
-      .resp_o        ( plic_rsp    ),
-      .le_i          ( '0          ), // 0:level 1:edge
-      .irq_sources_i ( irq_sources ),
-      .eip_targets_o ( irq_o       )
+    // ariane_axi::req_t         lite_msi_req;
+    // ariane_axi::resp_t        lite_msi_resp; 
+
+    // /** AW Channel */
+    // assign lite_msi_req.aw.id       = imsic.aw_id;
+    // assign lite_msi_req.aw.addr     = imsic.aw_addr;
+    // assign lite_msi_req.aw_valid    = imsic.aw_valid;
+    // assign lite_msi_req.aw_valid    = imsic.aw_valid;
+    // assign imsic.aw_ready           = lite_msi_resp.aw_ready;
+    // /** W Channel */
+    // assign lite_msi_req.w.data      = imsic.w_data;
+    // assign lite_msi_req.w.strb      = imsic.w_strb;
+    // assign lite_msi_req.w_valid     = imsic.w_valid;
+    // assign lite_msi_req.w.last      = imsic.w_last;
+    // assign imsic.w_ready            = lite_msi_resp.w_ready;
+    // /** B Channel */
+    // assign lite_msi_req.b_ready     = imsic.b_ready;
+    // assign imsic.b_valid            = lite_msi_resp.b_valid;
+    // assign imsic.b_resp             = lite_msi_resp.b.resp;
+    // /** AR Channel */
+    // assign lite_msi_req.ar.addr     = imsic.ar_addr;
+    // assign lite_msi_req.ar_valid    = imsic.ar_valid;
+    // assign imsic.ar_ready           = lite_msi_resp.ar_ready;
+    // /** R Channel */
+    // assign lite_msi_req.r_ready     = imsic.r_ready;
+    // assign imsic.r_valid            = lite_msi_resp.r_valid;
+    // assign imsic.r_data             = lite_msi_resp.r.data;
+    // assign imsic.r_resp             = lite_msi_resp.r.resp;
+
+    `AXI_TYPEDEF_ALL(imsic_axi_slave,
+                 logic [    AxiAddrWidth-1:0],
+                 logic [culsans_pkg::IdWidthSlave-1:0],
+                 logic [    AxiDataWidth-1:0],
+                 logic [(AxiDataWidth/8)-1:0],
+                 logic [    AxiUserWidth-1:0])
+
+    imsic_axi_slave_req_t lite_msi_req;
+    imsic_axi_slave_resp_t lite_msi_resp;
+
+    `AXI_ASSIGN_TO_REQ(lite_msi_req, imsic)
+    `AXI_ASSIGN_FROM_RESP(imsic, lite_msi_resp)
+
+    aplic_top #(
+        .NR_SRC              ( ariane_soc::NumSources            ),
+        .MIN_PRIO            ( ariane_soc::MaxPriority           ),
+        .NR_IMSICS           ( ariane_soc::NumHarts              ),
+        .NR_VS_FILES_PER_IMSIC ( ariane_soc::NrVSIntpFiles       ),
+        .reg_req_t           ( plic_req_t                        ),
+        .reg_rsp_t           ( plic_rsp_t                        ),
+        .axi_req_t           ( imsic_axi_slave_req_t             ),
+        .axi_resp_t          ( imsic_axi_slave_resp_t            )
+    ) aplic_top_embedded_i (
+        .i_clk               ( clk_i                             ),
+        .ni_rst              ( rst_ni                            ),
+        .i_irq_sources       ( {irq_sources, 1'b0}               ),
+        .i_req_cfg           ( plic_req                          ),
+        .o_resp_cfg          ( plic_rsp                          ),
+        .i_priv_lvl          ( i_priv_lvl                        ),    
+        .i_vgein             ( i_vgein                           ),
+        .i_imsic_addr        ( i_imsic_addr                      ),        
+        .i_imsic_data        ( i_imsic_data                      ),        
+        .i_imsic_we          ( i_imsic_we                        ),    
+        .i_imsic_claim       ( i_imsic_claim                     ),        
+        .o_imsic_data        ( o_imsic_data                      ),        
+        .o_xtopei            ( o_xtopei                          ),    
+        .o_Xeip_targets      ( irq_o                             ),        
+        .o_imsic_exception   ( o_imsic_exception                 ),            
+        .i_imsic_req         ( lite_msi_req                      ),
+        .o_imsic_resp        ( lite_msi_resp                     )
     );
 
     // ---------------

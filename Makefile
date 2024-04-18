@@ -138,6 +138,10 @@ endif
 DPI_CFLAGS   ?= $(CFLAGS)   $(DPI_FLAGS)
 DPI_CXXFLAGS ?= $(CXXFLAGS) $(DPI_FLAGS) -D_GLIBCXX_USE_CXX11_ABI=0
 
+# corev_apu/rv_plic/rtl/rv_plic_target.sv                                      \
+# corev_apu/rv_plic/rtl/rv_plic_gateway.sv                                     \
+# corev_apu/rv_plic/rtl/plic_regmap.sv                                         \
+# corev_apu/rv_plic/rtl/plic_top.sv                                            \
 # this list contains the standalone components
 src :=  core/include/$(target)_config_pkg.sv                                         \
         corev_apu/tb/ariane.sv                                                      \
@@ -148,11 +152,16 @@ src :=  core/include/$(target)_config_pkg.sv                                    
         $(subst $(root-dir),,$(wildcard $(root-dir)corev_apu/fpga/src/axi_slice/src/*.sv))    \
         $(subst $(root-dir),,$(wildcard $(root-dir)corev_apu/src/axi_riscv_atomics/src/*.sv)) \
         $(subst $(root-dir),,$(wildcard $(root-dir)corev_apu/axi_mem_if/src/*.sv))            \
-        corev_apu/rv_plic/rtl/rv_plic_target.sv                                      \
-        corev_apu/rv_plic/rtl/rv_plic_gateway.sv                                     \
-        corev_apu/rv_plic/rtl/prim_subreg.sv                                         \
-        corev_apu/rv_plic/rtl/plic_regmap.sv                                         \
-        corev_apu/rv_plic/rtl/plic_top.sv                                            \
+		corev_apu/rv_plic/rtl/prim_subreg.sv                                         \
+		corev_apu/riscv-aia/vendor/aia_axi_lite_slave.sv 							 \
+		corev_apu/riscv-aia/rtl/ieaia/aplic_domain_gateway.sv					     \
+		corev_apu/riscv-aia/rtl/ieaia/aplic_domain_notifier.sv					     \
+		corev_apu/riscv-aia/rtl/ieaia/aplic_domain_regctl.sv				 		 \
+		corev_apu/riscv-aia/rtl/ieaia/aplic_domain_top.sv				     		 \
+		corev_apu/riscv-aia/rtl/ieaia/aplic_regmap_32_0.sv				     		 \
+		corev_apu/riscv-aia/rtl/ieaia/aplic_top.sv				 			 		 \
+		corev_apu/riscv-aia/rtl/ieaia/imsic_regmap.sv				 			 	 \
+		corev_apu/riscv-aia/rtl/ieaia/imsic_top.sv				 			 		 \
         corev_apu/clic/src/mclic_reg_pkg.sv                                          \
         corev_apu/clic/src/mclic_reg_top.sv                                          \
         corev_apu/clic/src/clicint_reg_pkg.sv                                        \
