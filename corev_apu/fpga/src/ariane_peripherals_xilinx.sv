@@ -215,7 +215,7 @@ module ariane_peripherals #(
 
     `AXI_TYPEDEF_ALL(imsic_axi_slave,
                  logic [    AxiAddrWidth-1:0],
-                 logic [culsans_pkg::IdWidthSlave-1:0],
+                 logic [      AxiIdWidth-1:0], //AxiIdWidth
                  logic [    AxiDataWidth-1:0],
                  logic [(AxiDataWidth/8)-1:0],
                  logic [    AxiUserWidth-1:0])
@@ -231,6 +231,9 @@ module ariane_peripherals #(
         .MIN_PRIO            ( ariane_soc::MaxPriority           ),
         .NR_IMSICS           ( ariane_soc::NumHarts              ),
         .NR_VS_FILES_PER_IMSIC ( ariane_soc::NrVSIntpFiles       ),
+        .AXI_ADDR_WIDTH      ( AxiAddrWidth                      ),
+        .AXI_DATA_WIDTH      ( AxiDataWidth                      ),   
+        .AXI_ID_WIDTH        ( AxiIdWidth                        ),   
         .reg_req_t           ( plic_req_t                        ),
         .reg_rsp_t           ( plic_rsp_t                        ),
         .axi_req_t           ( imsic_axi_slave_req_t             ),
