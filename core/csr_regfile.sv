@@ -29,7 +29,7 @@ module csr_regfile import ariane_pkg::*; #(
     output logic                  flush_o,
     output logic                  halt_csr_o,                 // halt requested
     // commit acknowledge
-    (*mark_debug = "true"*) input  scoreboard_entry_t [NrCommitPorts-1:0] commit_instr_i, // the instruction we want to commit
+    input  scoreboard_entry_t [NrCommitPorts-1:0] commit_instr_i, // the instruction we want to commit
     input  logic [NrCommitPorts-1:0]              commit_ack_i,   // Commit acknowledged a instruction -> increase instret CSR
     // Core and Cluster ID
     input  logic[riscv::VLEN-1:0] boot_addr_i,                // Address from which to start booting, mtvec is set to the same address
@@ -37,10 +37,10 @@ module csr_regfile import ariane_pkg::*; #(
     // we are taking an exception
     input exception_t             ex_i,                       // We've got an exception from the commit stage, take it
 
-    (*mark_debug = "true"*) input  fu_op                  csr_op_i,                   // Operation to perform on the CSR file
-    (*mark_debug = "true"*) input  logic  [11:0]          csr_addr_i,                 // Address of the register to read/write
-    (*mark_debug = "true"*) input  logic[riscv::XLEN-1:0] csr_wdata_i,                // Write data in
-    (*mark_debug = "true"*) output logic[riscv::XLEN-1:0] csr_rdata_o,                // Read data out
+    input  fu_op                  csr_op_i,                   // Operation to perform on the CSR file
+    input  logic  [11:0]          csr_addr_i,                 // Address of the register to read/write
+    input  logic[riscv::XLEN-1:0] csr_wdata_i,                // Write data in
+    output logic[riscv::XLEN-1:0] csr_rdata_o,                // Read data out
     input  logic                  dirty_fp_state_i,           // Mark the FP sate as dirty
     input  logic                  csr_write_fflags_i,         // Write fflags register e.g.: we are retiring a floating point instruction
     input  logic  [riscv::VLEN-1:0]  pc_i,                    // PC of instruction accessing the CSR
@@ -60,7 +60,7 @@ module csr_regfile import ariane_pkg::*; #(
     output logic [2:0]            frm_o,                      // Floating-Point Dynamic Rounding Mode
     output logic [6:0]            fprec_o,                    // Floating-Point Precision Control
     // Decoder
-    (*mark_debug = "true"*) output irq_ctrl_t             irq_ctrl_o,                 // interrupt management to id stage
+    output irq_ctrl_t             irq_ctrl_o,                 // interrupt management to id stage
     // MMU
     output logic                  en_translation_o,           // enable VA translation
     output logic                  en_g_translation_o,         // enable G-Stage translation
@@ -102,19 +102,19 @@ module csr_regfile import ariane_pkg::*; #(
     output logic                  icache_en_o,                // L1 ICache Enable
     output logic                  dcache_en_o,                // L1 DCache Enable
     // From Decoder
-    (*mark_debug = "true"*) input  logic [riscv::XLEN-1:0]                                              mtopi_i             ,
-    (*mark_debug = "true"*) input  logic [riscv::XLEN-1:0]                                              stopi_i             ,
-    (*mark_debug = "true"*) input  logic [riscv::XLEN-1:0]                                              vstopi_i            ,
+    input  logic [riscv::XLEN-1:0]                                              mtopi_i             ,
+    input  logic [riscv::XLEN-1:0]                                              stopi_i             ,
+    input  logic [riscv::XLEN-1:0]                                              vstopi_i            ,
     // To/From IMSIC
-    (*mark_debug = "true"*) output  logic [1:0]                                                         imsic_priv_lvl_o    ,
-    (*mark_debug = "true"*) output  logic [ariane_soc::NrVSIntpFilesW:0]                                imsic_vgein_o       ,
-    (*mark_debug = "true"*) output  logic [32-1:0]                                                      imsic_addr_o        ,
-    (*mark_debug = "true"*) output  logic [32-1:0]                                                      imsic_data_o        ,
-    (*mark_debug = "true"*) output  logic                                                               imsic_we_o          ,
-    (*mark_debug = "true"*) output  logic                                                               imsic_claim_o       ,
-    (*mark_debug = "true"*) input   logic [32-1:0]                                                      imsic_data_i        ,
-    (*mark_debug = "true"*) input   logic                                                               imsic_exception_i   ,
-    (*mark_debug = "true"*) input   logic [ariane_soc::NrIntpFiles-1:0][ariane_soc::NrSourcesW-1:0]     imsic_xtopei_i      ,
+    output  logic [1:0]                                                         imsic_priv_lvl_o    ,
+    output  logic [ariane_soc::NrVSIntpFilesW:0]                                imsic_vgein_o       ,
+    output  logic [32-1:0]                                                      imsic_addr_o        ,
+    output  logic [32-1:0]                                                      imsic_data_o        ,
+    output  logic                                                               imsic_we_o          ,
+    output  logic                                                               imsic_claim_o       ,
+    input   logic [32-1:0]                                                      imsic_data_i        ,
+    input   logic                                                               imsic_exception_i   ,
+    input   logic [ariane_soc::NrIntpFiles-1:0][ariane_soc::NrSourcesW-1:0]     imsic_xtopei_i      ,
     // fence.t
     output logic [31:0]           fence_t_pad_o,              // Padding time of fence.t relative to time interrupt
     output logic                  fence_t_src_sel_o,          // Pad relative to selected source

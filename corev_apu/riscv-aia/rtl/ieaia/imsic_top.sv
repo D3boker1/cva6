@@ -50,9 +50,9 @@ module imsic_island_top #(
    output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                 o_Xeip_targets  ,
    output logic [NR_IMSICS-1:0]                                    o_imsic_exception,
    /** APLIC interface */
-   (*mark_debug = "true"*) input  logic [NR_SRC_LEN-1:0]                                   i_aplic_setipnum,
-   (*mark_debug = "true"*) input  logic [NR_IMSICS-1:0]                                    i_aplic_imsic_en,
-   (*mark_debug = "true"*) input  logic [INTP_FILE_LEN-1:0]                                i_aplic_select_file
+   input  logic [NR_SRC_LEN-1:0]                                   i_aplic_setipnum,
+   input  logic [NR_IMSICS-1:0]                                    i_aplic_imsic_en,
+   input  logic [INTP_FILE_LEN-1:0]                                i_aplic_select_file
 );
 
 localparam PRIV_LVL_M                               = 2'b11;
@@ -71,18 +71,18 @@ localparam EIP63_OFF                                = 'hBF;
 localparam EIE0_OFF                                 = 'hC0;
 localparam EIE63_OFF                                = 'hFF;
 
-(*mark_debug = "true"*) logic [NR_IMSICS-1:0][INTP_FILE_LEN-1:0]                           select_intp_file_i;
+logic [NR_IMSICS-1:0][INTP_FILE_LEN-1:0]                           select_intp_file_i;
 /** Interrupt files registers */
-(*mark_debug = "true"*) logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                           eidelivery_d,   eidelivery_q;
-(*mark_debug = "true"*) logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0]           eithreshold_d,  eithreshold_q;
-(*mark_debug = "true"*) logic [NR_IMSICS-1:0][(NR_INTP_FILES*NR_REG)-1:0][NR_BITS_SRC-1:0] eip_d,          eip_q;
-(*mark_debug = "true"*) logic [NR_IMSICS-1:0][(NR_INTP_FILES*NR_REG)-1:0][NR_BITS_SRC-1:0] eie_d,          eie_q;
+logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                           eidelivery_d,   eidelivery_q;
+logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0]           eithreshold_d,  eithreshold_q;
+logic [NR_IMSICS-1:0][(NR_INTP_FILES*NR_REG)-1:0][NR_BITS_SRC-1:0] eip_d,          eip_q;
+logic [NR_IMSICS-1:0][(NR_INTP_FILES*NR_REG)-1:0][NR_BITS_SRC-1:0] eie_d,          eie_q;
 
-(*mark_debug = "true"*) logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0]           xtopei;
-(*mark_debug = "true"*) logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                           xeip_targets;
+logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0]           xtopei;
+logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                           xeip_targets;
 
-(*mark_debug = "true"*) logic [NR_IMSICS-1:0][31:0] target_register;
-(*mark_debug = "true"*) logic [NR_IMSICS-1:0][31:0] target_intp;
+logic [NR_IMSICS-1:0][31:0] target_register;
+logic [NR_IMSICS-1:0][31:0] target_intp;
 
 // ======================= CONTROL LOGIC ==========================
     for (genvar i = 0; i < NR_IMSICS; i++) begin

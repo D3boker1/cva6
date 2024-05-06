@@ -15,6 +15,9 @@ module aplic_top #(
    parameter int                                NR_IDCs                 = 1     ,
    parameter int unsigned                       NR_IMSICS               = 1     ,
    parameter int unsigned                       NR_VS_FILES_PER_IMSIC   = 0     ,
+   parameter int unsigned                       AXI_ADDR_WIDTH          = 64     ,
+   parameter int unsigned                       AXI_DATA_WIDTH          = 64     ,
+   parameter int unsigned                       AXI_ID_WIDTH            = 4      ,
    parameter type                               reg_req_t               = logic ,
    parameter type                               reg_rsp_t               = logic ,
    parameter type                               axi_req_t               = logic ,
@@ -55,7 +58,7 @@ module aplic_top #(
 /** 
  * A 2-level synchronyzer to avoid metastability in the irq line
 */
-(*mark_debug = "true"*) logic [1:0][NR_SRC-1:0]    sync_irq_src;
+logic [1:0][NR_SRC-1:0]    sync_irq_src;
 always_ff @( posedge i_clk or negedge ni_rst) begin
    if(!ni_rst)begin
       sync_irq_src <= '0;
@@ -73,6 +76,9 @@ aplic_domain_top #(
    .MIN_PRIO                ( MIN_PRIO              ),
    .NR_IMSICS               ( NR_IMSICS             ),
    .NR_VS_FILES_PER_IMSIC   ( NR_VS_FILES_PER_IMSIC ),
+   .AXI_ADDR_WIDTH          ( AXI_ADDR_WIDTH        ),     
+   .AXI_DATA_WIDTH          ( AXI_DATA_WIDTH        ),     
+   .AXI_ID_WIDTH            ( AXI_ID_WIDTH          ),  
    .reg_req_t               ( reg_req_t             ),
    .reg_rsp_t               ( reg_rsp_t             ),
    .axi_req_t               ( axi_req_t             ),

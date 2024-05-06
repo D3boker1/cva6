@@ -15,6 +15,9 @@ module aplic_domain_top #(
    parameter int                                NR_IDCs                 = 1,
    parameter int unsigned                       NR_IMSICS               = 1,
    parameter int unsigned                       NR_VS_FILES_PER_IMSIC   = 0,
+   parameter int unsigned                       AXI_ADDR_WIDTH          = 64     ,
+   parameter int unsigned                       AXI_DATA_WIDTH          = 64     ,
+   parameter int unsigned                       AXI_ID_WIDTH            = 4      ,
    parameter type                               reg_req_t               = logic,
    parameter type                               reg_rsp_t               = logic,
    parameter type                               axi_req_t               = ariane_axi::req_t ,
@@ -95,7 +98,10 @@ module aplic_domain_top #(
       .MIN_PRIO               ( MIN_PRIO              ),  
       .NR_IDCs                ( NR_IDCs               ),
       .NR_IMSICS              ( NR_IMSICS             ),
-      .NR_VS_FILES_PER_IMSIC  ( NR_VS_FILES_PER_IMSIC ), 
+      .NR_VS_FILES_PER_IMSIC  ( NR_VS_FILES_PER_IMSIC ),
+      .AXI_ADDR_WIDTH         ( AXI_ADDR_WIDTH        ),   
+      .AXI_DATA_WIDTH         ( AXI_DATA_WIDTH        ),   
+      .AXI_ID_WIDTH           ( AXI_ID_WIDTH          ), 
       .axi_req_t              ( axi_req_t             ),
       .axi_resp_t             ( axi_resp_t            )
    ) i_aplic_domain_notifier_minimal (

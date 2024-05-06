@@ -33,23 +33,23 @@ module imsic_regmap #(
     input  logic                                                        i_clk            ,
     input  logic                                                        ni_rst           ,
     input  logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0]     i_setipnum       ,
-    (*mark_debug = "true"*) output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0]     o_setipnum       ,
-    (*mark_debug = "true"*) output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                     o_setipnum_we    ,
+    output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0]     o_setipnum       ,
+    output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                     o_setipnum_we    ,
     output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                     o_setipnum_re    ,
     // Bus Interface
-    (*mark_debug = "true"*) input  axi_req_t                                                    i_req            ,
-    (*mark_debug = "true"*) output axi_resp_t                                                   o_resp            
+    input  axi_req_t                                                    i_req            ,
+    output axi_resp_t                                                   o_resp            
 );
     // signals from AXI 4 Lite
     logic [AXI_ADDR_WIDTH-1:0]            address;
-    (*mark_debug = "true"*) logic                                 en;
-    (*mark_debug = "true"*) logic                                 we;
-    (*mark_debug = "true"*) logic [AXI_DATA_WIDTH-1:0]            wdata;
+    logic                                 en;
+    logic                                 we;
+    logic [AXI_DATA_WIDTH-1:0]            wdata;
     logic [AXI_DATA_WIDTH-1:0]            rdata;
 
-    (*mark_debug = "true"*) logic [31:0]                          register_address;
-    (*mark_debug = "true"*) logic [31:0]                          imsic_index;
-    (*mark_debug = "true"*) logic [31:0]                          file_index;
+    logic [31:0]                          register_address;
+    logic [31:0]                          imsic_index;
+    logic [31:0]                          file_index;
     assign register_address               = address[31:0];
 
     // -----------------------------

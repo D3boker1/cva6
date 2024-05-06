@@ -77,25 +77,25 @@ module aplic_domain_regctl #(
   localparam W_FORCE                  = 2'h2;
 // =========================================================
 
-(*mark_debug = "true"*) logic [NR_REG:0][NR_BITS_SRC-1:0]                   active;
-(*mark_debug = "true"*) logic [NR_SRC-1:1]/**[NR_DOMAIN_W:0]*/              intp_domain_d, intp_domain_q;
+logic [NR_REG:0][NR_BITS_SRC-1:0]                   active;
+logic [NR_SRC-1:1]/**[NR_DOMAIN_W:0]*/              intp_domain_d, intp_domain_q;
 logic [NR_SRC-1:1]                                  change_of_domain_detected;
 logic [2:0]                                         setie_select_i, setip_select_i;
 
 // =============== Register Map instantiation ==============
   // Register domaincfg
-  (*mark_debug = "true"*) logic [NR_DOMAINS-1:0][31:0]                      domaincfg_q, domaincfg_d;
+  logic [NR_DOMAINS-1:0][31:0]                      domaincfg_q, domaincfg_d;
   logic [NR_DOMAINS-1:0][31:0]                      domaincfg_o;
   logic [NR_DOMAINS-1:0]                            domaincfg_we;
   // Register sourcecfg
-  (*mark_debug = "true"*) logic [NR_SRC-1:1][10:0]                          sourcecfg_q, sourcecfg_d;
+  logic [NR_SRC-1:1][10:0]                          sourcecfg_q, sourcecfg_d;
   logic [NR_SRC-1:1][10:0]                          sourcecfg_mux3_i0;
   logic [NR_DOMAINS-1:0][NR_SRC-1:1][10:0]          sourcecfg_full;
   logic [NR_DOMAINS-1:0][NR_SRC-1:1][10:0]          sourcecfg_o;
   logic [NR_DOMAINS-1:0][NR_SRC-1:1]                sourcecfg_we;
   logic [NR_SRC-1:1]                                sourcecfg_final_we;
   // Register setip
-  (*mark_debug = "true"*) logic [NR_REG:0][31:0]                            setip_q, setip_d;
+  logic [NR_REG:0][31:0]                            setip_q, setip_d;
   logic [3:0][NR_REG:0][31:0]                       setip_mux0_in;
   logic [NR_REG:0][31:0]                            setip_mux0_o;
   logic [NR_DOMAINS-1:0][NR_REG:0][31:0]            setip_full;
@@ -110,7 +110,7 @@ logic [2:0]                                         setie_select_i, setip_select
   logic [NR_DOMAINS-1:0]                            setipnum_we;
   logic                                             setipnum_final_we;
   // Register in_clrip
-  (*mark_debug = "true"*) logic [NR_REG:0][31:0]                            in_clrip_q, in_clrip_d;
+  logic [NR_REG:0][31:0]                            in_clrip_q, in_clrip_d;
   logic [NR_REG:0][31:0]                            clrip_mux0_i1;
   logic [NR_DOMAINS-1:0][NR_REG:0][31:0]            in_clrip_full;
   logic [NR_DOMAINS-1:0][NR_REG:0][31:0]            in_clrip_o;
@@ -124,7 +124,7 @@ logic [2:0]                                         setie_select_i, setip_select
   logic [NR_DOMAINS-1:0]                            clripnum_we;
   logic                                             clripnum_final_we;
   // Register setie
-  (*mark_debug = "true"*) logic [NR_REG:0][31:0]                            setie_q, setie_d;
+  logic [NR_REG:0][31:0]                            setie_q, setie_d;
   logic [3:0][NR_REG:0][31:0]                       setie_mux0_in;
   logic [NR_REG:0][31:0]                            setie_mux0_o;
   logic [NR_DOMAINS-1:0][NR_REG:0][31:0]            setie_full;
@@ -140,7 +140,7 @@ logic [2:0]                                         setie_select_i, setip_select
   logic [NR_DOMAINS-1:0]                            setienum_we;
   logic                                             setienum_final_we;
   // Register clrie
-  (*mark_debug = "true"*) logic [NR_REG:0][31:0]                            clrie_q, clrie_d;
+  logic [NR_REG:0][31:0]                            clrie_q, clrie_d;
   logic [NR_REG:0][31:0]                            clrie_mux0_i1;
   logic [NR_DOMAINS-1:0][NR_REG:0][31:0]            clrie_o;
   logic [NR_DOMAINS-1:0][NR_REG:0]                  clrie_we;
@@ -153,14 +153,14 @@ logic [2:0]                                         setie_select_i, setip_select
   logic [NR_DOMAINS-1:0]                            clrienum_we;
   logic                                             clrienum_final_we;
   // Register target
-  (*mark_debug = "true"*) logic [NR_SRC-1:1][31:0]                          target_q, target_d;
+  logic [NR_SRC-1:1][31:0]                          target_q, target_d;
   logic [NR_DOMAINS-1:0][NR_SRC-1:1][31:0]          target_full;
   logic [NR_DOMAINS-1:0][NR_SRC-1:1][31:0]          target_o;
   logic [NR_DOMAINS-1:0][NR_SRC-1:1]                target_we;
 
 `ifdef MSI_MODE
   // Register genmsi
-  (*mark_debug = "true"*) logic [NR_DOMAINS-1:0][31:0]                      genmsi_q, genmsi_d;
+  logic [NR_DOMAINS-1:0][31:0]                      genmsi_q, genmsi_d;
   logic [NR_DOMAINS-1:0][31:0]                      genmsi_o;
   logic [NR_DOMAINS-1:0]                            genmsi_we;
 `endif

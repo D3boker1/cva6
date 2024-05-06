@@ -69,13 +69,13 @@ module aplic_domain_notifier #(
 );
 
 /** Signals for IMSIC island */
-(*mark_debug = "true"*) logic [NR_SRC_LEN-1:0]      imsic_setipnum;
-(*mark_debug = "true"*) logic [NR_IMSICS-1:0]       imsic_en;
-(*mark_debug = "true"*) logic [INTP_FILE_LEN-1:0]   imsic_select_file;
+logic [NR_SRC_LEN-1:0]      imsic_setipnum;
+logic [NR_IMSICS-1:0]       imsic_en;
+logic [INTP_FILE_LEN-1:0]   imsic_select_file;
 /** Signals for APLIC register controller */
-(*mark_debug = "true"*) logic [10:0]                forwarded_intp_id;
-(*mark_debug = "true"*) logic                       forwarded_valid;
-(*mark_debug = "true"*) logic [NR_DOMAINS-1:0]      genmsi_sent;
+logic [10:0]                forwarded_intp_id;
+logic                       forwarded_valid;
+logic [NR_DOMAINS-1:0]      genmsi_sent;
 
 always_comb begin : find_pen_en_intp
     forwarded_intp_id   = '0;
