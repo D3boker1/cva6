@@ -3,18 +3,8 @@
 * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 * 
 * Author: F.Marques <fmarques_00@protonmail.com>
-*
-* Description:  This module is responsible for all the
-*               logic used to determine the registers value.
-*
-* NOTE:         This module is part of minimal APLIC. Our minimal APLIC implements only
-*               two domains (M and S). From the AIA specification can be read (section 4.5):
-*               "APLIC implementations can exploit the fact that each source is ultimately active 
-*               in only one domain."
-*               As so, this minimal version implements only one domain and relies on logic to mask 
-*               the interrupt to the correct domain.
 */
-`define MSI_MODE
+
 module aplic_domain_regctl #(
     parameter int                                                   NR_DOMAINS          = 2,
     parameter int                                                   DOMAIN_M_ADDR       = 32'hc000000,

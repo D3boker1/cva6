@@ -3,11 +3,8 @@
 * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 * 
 * Author: F.Marques <fmarques_00@protonmail.com>
-* 
-* Description: Implements a generic IMSIC register map
-*               
-*/ 
-`define MSI_MODE
+*/
+
 module aplic_domain_top #(
    parameter int                                NR_DOMAINS              = 2,
    parameter int                                NR_SRC                  = 32,
