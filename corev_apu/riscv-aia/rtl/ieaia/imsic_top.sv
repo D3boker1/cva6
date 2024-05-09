@@ -156,29 +156,28 @@ logic [NR_IMSICS-1:0][31:0] target_intp;
                     end
                     default: o_imsic_exception[i] = 1'b1;
                 endcase
-            end else begin 
-                case (i_imsic_addr[i]) inside
-                    EIDELIVERY_OFF: begin
-                        o_imsic_data[i] = {{31{1'b0}}, eidelivery_q[i][select_intp_file_i[i]]};
-                    end
-                    EITHRESHOLD_OFF:begin
-                        o_imsic_data[i] = {{32-NR_SRC_LEN{1'b0}}, eithreshold_q[i][select_intp_file_i[i]]};
-                    end
-                    [EIP0_OFF:EIP63_OFF]:begin
-                        if((i_imsic_addr[i]-EIP0_OFF) <= NR_REG-1) begin
-                            o_imsic_data[i] = {{32-NR_BITS_SRC{1'b0}}, 
-                                            eip_q[i][(i_imsic_addr[i]-EIP0_OFF)+(select_intp_file_i[i]*NR_REG)]};
-                        end
-                    end
-                    [EIE0_OFF:EIE63_OFF]:begin
-                        if((i_imsic_addr[i]-EIE0_OFF) <= NR_REG-1) begin
-                            o_imsic_data[i] = {{32-NR_BITS_SRC{1'b0}}, 
-                                            eie_q[i][(i_imsic_addr[i]-EIE0_OFF)+(select_intp_file_i[i]*NR_REG)]};
-                        end
-                    end
-                    default: o_imsic_exception[i] = 1'b1;
-                endcase
             end
+            case (i_imsic_addr[i]) inside
+                EIDELIVERY_OFF: begin
+                    o_imsic_data[i] = {{31{1'b0}}, eidelivery_q[i][select_intp_file_i[i]]};
+                end
+                EITHRESHOLD_OFF:begin
+                    o_imsic_data[i] = {{32-NR_SRC_LEN{1'b0}}, eithreshold_q[i][select_intp_file_i[i]]};
+                end
+                [EIP0_OFF:EIP63_OFF]:begin
+                    if((i_imsic_addr[i]-EIP0_OFF) <= NR_REG-1) begin
+                        o_imsic_data[i] = {{32-NR_BITS_SRC{1'b0}}, 
+                                        eip_q[i][(i_imsic_addr[i]-EIP0_OFF)+(select_intp_file_i[i]*NR_REG)]};
+                    end
+                end
+                [EIE0_OFF:EIE63_OFF]:begin
+                    if((i_imsic_addr[i]-EIE0_OFF) <= NR_REG-1) begin
+                        o_imsic_data[i] = {{32-NR_BITS_SRC{1'b0}}, 
+                                        eie_q[i][(i_imsic_addr[i]-EIE0_OFF)+(select_intp_file_i[i]*NR_REG)]};
+                    end
+                end
+                default: o_imsic_exception[i] = 1'b1;
+            endcase
 
             /** AXI channel handler */
             for (int k = 0; k < NR_INTP_FILES; k++) begin
