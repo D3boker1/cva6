@@ -98,25 +98,7 @@ module imsic_regmap #(
     end
 
     /** Process a read request */
-    always_comb begin
-        rdata = 'b0;
-        o_setipnum_re = '0;
-        if (en && !we) begin
-            unique case (register_address) inside
-                IMSIC_M_BASE_ADDR: begin
-                    // rdata               = {{AXI_DATA_WIDTH-NR_SRC_LEN{1'b0}}, 
-                    //                        i_setipnum[0]};
-                    // o_setipnum_re[0]    = 1'b1;
-                end
-
-                [IMSIC_S_BASE_ADDR : IMSIC_S_BASE_ADDR + ((NR_INTP_FILES-2)*'h1000)]: begin
-                    // rdata                   = {{AXI_DATA_WIDTH-NR_SRC_LEN{1'b0}}, 
-                    //                             i_setipnum[register_address[13:12]+1]};
-                    // o_setipnum_re[register_address[13:12]+1]        = 1'b1;
-                end           
-                default:;
-            endcase
-        end
-    end
+    assign rdata = 'b0;
+    assign o_setipnum_re = '0;
     
 endmodule
