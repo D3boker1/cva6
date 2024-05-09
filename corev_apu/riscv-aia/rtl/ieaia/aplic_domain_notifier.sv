@@ -6,10 +6,11 @@
 */
 
 module aplic_domain_notifier #(
-    parameter int                  NR_DOMAINS              = 2      ,
-    parameter int                  MIN_PRIO                = 6      ,
-    parameter int                  NR_IDCs                 = 1      ,
-    parameter int                  NR_SRC                  = 32     ,
+    parameter int unsigned         XLEN                    = 64     ,
+    parameter int unsigned         NR_DOMAINS              = 2      ,
+    parameter int unsigned         MIN_PRIO                = 6      ,
+    parameter int unsigned         NR_SRC                  = 32     ,
+    parameter int unsigned         NR_SRC_IMSIC            = 64     ,
     parameter int unsigned         NR_IMSICS               = 1      ,
     parameter int unsigned         NR_VS_FILES_PER_IMSIC   = 0      ,
     parameter int unsigned         AXI_ADDR_WIDTH          = 64     ,
@@ -24,7 +25,7 @@ module aplic_domain_notifier #(
     parameter int                  IMSICS_LEN       = (NR_IMSICS == 1) ? 1: $clog2(NR_IMSICS),
     parameter int                  INTP_FILE_LEN    = $clog2(NR_INTP_FILES),
     parameter int                  VS_INTP_FILE_LEN = $clog2(NR_VS_FILES_PER_IMSIC),
-    parameter int                  NR_SRC_LEN       = $clog2(NR_SRC)
+    parameter int                  NR_SRC_LEN       = $clog2(NR_SRC_IMSIC)
 ) (
     input   logic                                i_clk              ,
     input   logic                                ni_rst             ,
@@ -42,11 +43,11 @@ module aplic_domain_notifier #(
     /** NOTE: This should be a struct */
     input  logic [NR_IMSICS-1:0][1:0]                               i_priv_lvl      ,
     input  logic [NR_IMSICS-1:0][VS_INTP_FILE_LEN:0]                i_vgein         ,
-    input  logic [NR_IMSICS-1:0][32-1:0]                            i_imsic_addr   ,
-    input  logic [NR_IMSICS-1:0][32-1:0]                            i_imsic_data    ,
+    input  logic [NR_IMSICS-1:0][32-1:0]                            i_imsic_addr    ,
+    input  logic [NR_IMSICS-1:0][XLEN-1:0]                          i_imsic_data    ,
     input  logic [NR_IMSICS-1:0]                                    i_imsic_we      ,
     input  logic [NR_IMSICS-1:0]                                    i_imsic_claim   ,
-    output logic [NR_IMSICS-1:0][32-1:0]                            o_imsic_data    ,
+    output logic [NR_IMSICS-1:0][XLEN-1:0]                          o_imsic_data    ,
     output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0] o_xtopei        ,
     output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                 o_Xeip_targets  ,
     output logic [NR_IMSICS-1:0]                                    o_imsic_exception,
@@ -90,7 +91,8 @@ assign o_forwarded_valid    = forwarded_valid;
 assign o_intp_forwd_id      = forwarded_intp_id;
 
 imsic_island_top #(
-    .NR_SRC                 ( NR_SRC                ),
+    .XLEN                   ( XLEN                  ),
+    .NR_SRC                 ( NR_SRC_IMSIC          ),
     .NR_IMSICS              ( NR_IMSICS             ),
     .NR_VS_FILES_PER_IMSIC  ( NR_VS_FILES_PER_IMSIC ),
     .AXI_ADDR_WIDTH         ( AXI_ADDR_WIDTH        ),
@@ -105,7 +107,7 @@ imsic_island_top #(
     .o_resp                 ( o_imsic_resp          ),
     .i_priv_lvl             ( i_priv_lvl            ),
     .i_vgein                ( i_vgein               ),
-    .i_imsic_addr          ( i_imsic_addr         ),
+    .i_imsic_addr           ( i_imsic_addr          ),
     .i_imsic_data           ( i_imsic_data          ),
     .i_imsic_we             ( i_imsic_we            ),
     .i_imsic_claim          ( i_imsic_claim         ),

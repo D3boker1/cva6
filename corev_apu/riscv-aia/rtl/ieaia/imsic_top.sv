@@ -6,7 +6,8 @@
 */
 
 module imsic_island_top #(
-   parameter int                  NR_SRC           = 32   ,
+   parameter int unsigned         XLEN             = 64   ,
+   parameter int unsigned         NR_SRC           = 64   ,
    parameter int unsigned         AXI_ADDR_WIDTH   = 64   ,
    parameter int unsigned         AXI_DATA_WIDTH   = 64   ,
    parameter int unsigned         AXI_ID_WIDTH     = 10   ,
@@ -30,11 +31,11 @@ module imsic_island_top #(
    /** CSR interface*/
    input  logic [NR_IMSICS-1:0][1:0]                               i_priv_lvl      ,
    input  logic [NR_IMSICS-1:0][VS_INTP_FILE_LEN:0]                i_vgein         ,
-   input  logic [NR_IMSICS-1:0][32-1:0]                            i_imsic_addr    ,
-   input  logic [NR_IMSICS-1:0][32-1:0]                            i_imsic_data    ,
+   input  logic [NR_IMSICS-1:0][31:0]                              i_imsic_addr    ,
+   input  logic [NR_IMSICS-1:0][XLEN-1:0]                          i_imsic_data    ,
    input  logic [NR_IMSICS-1:0]                                    i_imsic_we      ,
    input  logic [NR_IMSICS-1:0]                                    i_imsic_claim   ,
-   output logic [NR_IMSICS-1:0][32-1:0]                            o_imsic_data    ,
+   output logic [NR_IMSICS-1:0][XLEN-1:0]                          o_imsic_data    ,
    output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0] o_xtopei        ,
    output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                 o_Xeip_targets  ,
    output logic [NR_IMSICS-1:0]                                    o_imsic_exception,
@@ -112,7 +113,9 @@ logic [NR_IMSICS-1:0][31:0] target_intp;
 // ================================================================
 
 // ================== SELECT REG IN INTP FILE =====================
+    logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][31:0] aux;
     for (genvar i = 0; i < NR_IMSICS; i++) begin
+        
         always_comb begin
             /** reset val */
             o_imsic_data[i]        = '0;
@@ -121,8 +124,9 @@ logic [NR_IMSICS-1:0][31:0] target_intp;
             eithreshold_d[i]       = eithreshold_q[i];
             eip_d[i]               = eip_q[i];
             eie_d[i]               = eie_q[i];
-            target_register[i]        = '0;
-            target_intp[i]            = '0;
+            target_register[i]     = '0;
+            target_intp[i]         = '0;
+            aux[i]                 = '0;
 
             /** CSRs channel handler */
             if (i_imsic_we[i]) begin
@@ -135,34 +139,45 @@ logic [NR_IMSICS-1:0][31:0] target_intp;
                     end
                     [EIP0_OFF:EIP63_OFF]:begin
                         if((i_imsic_addr[i]-EIP0_OFF) <= NR_REG-1) begin
-                            eip_d[i][(i_imsic_addr[i]-EIP0_OFF)+(select_intp_file_i[i]*NR_REG)] = i_imsic_data[i][NR_BITS_SRC-1:0];
+                            eip_d[i][(i_imsic_addr[i]-EIP0_OFF)+(select_intp_file_i[i]*NR_REG)] = i_imsic_data[i][31:0];
+                            if (XLEN == 64) begin
+                                eip_d[i][(i_imsic_addr[i]-EIP0_OFF)+(select_intp_file_i[i]*NR_REG)+1] = i_imsic_data[i][63:32];
+                            end
                         end
                     end
                     [EIE0_OFF:EIE63_OFF]:begin
                         if((i_imsic_addr[i]-EIE0_OFF) <= NR_REG-1) begin
-                            eie_d[i][(i_imsic_addr[i]-EIE0_OFF)+(select_intp_file_i[i]*NR_REG)] = i_imsic_data[i][NR_BITS_SRC-1:0];
+                            eie_d[i][(i_imsic_addr[i]-EIE0_OFF)+(select_intp_file_i[i]*NR_REG)] = i_imsic_data[i][31:0];
+                            if (XLEN == 64) begin
+                                eie_d[i][(i_imsic_addr[i]-EIE0_OFF)+(select_intp_file_i[i]*NR_REG)+1] = i_imsic_data[i][63:32];
+                            end
                         end
                     end
                     default: o_imsic_exception[i] = 1'b1;
                 endcase
             end
+
             case (i_imsic_addr[i]) inside
                 EIDELIVERY_OFF: begin
-                    o_imsic_data[i] = {{31{1'b0}}, eidelivery_q[i][select_intp_file_i[i]]};
+                    o_imsic_data[i] = {{XLEN-1{1'b0}}, eidelivery_q[i][select_intp_file_i[i]]};
                 end
                 EITHRESHOLD_OFF:begin
-                    o_imsic_data[i] = {{32-NR_SRC_LEN{1'b0}}, eithreshold_q[i][select_intp_file_i[i]]};
+                    o_imsic_data[i] = {{XLEN-NR_SRC_LEN{1'b0}}, eithreshold_q[i][select_intp_file_i[i]]};
                 end
                 [EIP0_OFF:EIP63_OFF]:begin
                     if((i_imsic_addr[i]-EIP0_OFF) <= NR_REG-1) begin
-                        o_imsic_data[i] = {{32-NR_BITS_SRC{1'b0}}, 
-                                        eip_q[i][(i_imsic_addr[i]-EIP0_OFF)+(select_intp_file_i[i]*NR_REG)]};
+                        o_imsic_data[i][31:0] = eip_q[i][(i_imsic_addr[i]-EIP0_OFF)+(select_intp_file_i[i]*NR_REG)];
+                        if (XLEN == 64) begin
+                            o_imsic_data[i][63:32] = eip_q[i][(i_imsic_addr[i]-EIP0_OFF)+(select_intp_file_i[i]*NR_REG)+1];
+                        end
                     end
                 end
                 [EIE0_OFF:EIE63_OFF]:begin
                     if((i_imsic_addr[i]-EIE0_OFF) <= NR_REG-1) begin
-                        o_imsic_data[i] = {{32-NR_BITS_SRC{1'b0}}, 
-                                        eie_q[i][(i_imsic_addr[i]-EIE0_OFF)+(select_intp_file_i[i]*NR_REG)]};
+                        o_imsic_data[i][31:0] = eie_q[i][(i_imsic_addr[i]-EIE0_OFF)+(select_intp_file_i[i]*NR_REG)];
+                        if (XLEN == 64) begin
+                            o_imsic_data[i][63:32] = eie_q[i][(i_imsic_addr[i]-EIE0_OFF)+(select_intp_file_i[i]*NR_REG)+1];
+                        end
                     end
                 end
                 default: o_imsic_exception[i] = 1'b1;
@@ -170,18 +185,18 @@ logic [NR_IMSICS-1:0][31:0] target_intp;
 
             /** AXI channel handler */
             for (int k = 0; k < NR_INTP_FILES; k++) begin
-                if (setipnum_we[i][k] && 
-                    ({{32-NR_SRC_LEN{1'b0}}, setipnum[i][k]} <= NR_SRC)) begin
-                    eip_d[i][({{32-NR_SRC_LEN{1'b0}}, setipnum[i][k]}/32)+(k*NR_REG)]
-                        [{{32-NR_SRC_LEN{1'b0}}, setipnum[i][k]}%32] = 1'b1;
+                aux[i][k] = {{32-NR_SRC_LEN{1'b0}}, setipnum[i][k]};
+                if (setipnum_we[i][k] && (aux[i][k] <= NR_SRC)) begin
+                    eip_d[i][(aux[i][k]/32)+(k*NR_REG)][aux[i][k]%32] = 1'b1;
                 end 
             end
 
             /** APLIC channel handler */
             if (i_aplic_imsic_en[i] == 1'b1) begin
-                target_register[i] = {{32-NR_BITS_SRC{1'b0}}, i_aplic_setipnum}/32;
-                target_intp[i]     = {{32-NR_BITS_SRC{1'b0}}, i_aplic_setipnum}%32;
-                eip_d[i][target_register[i]+(i_aplic_select_file*NR_REG)][target_intp[i]] = 1'b1;
+                target_register[i] = {{32-NR_SRC_LEN{1'b0}}, i_aplic_setipnum}/32;
+                target_intp[i]     = {{32-NR_SRC_LEN{1'b0}}, i_aplic_setipnum}%32;
+                eip_d[i][target_register[i]+(i_aplic_select_file*NR_REG)]
+                        [target_intp[i]] = 1'b1;
             end
 
             /** If a core is claiming the intp, unpend it */
@@ -209,20 +224,23 @@ logic [NR_IMSICS-1:0][31:0] target_intp;
         j - interrupt number in i; 
         
         k*NR_REG - select the interrupt file */
+    logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][31:0] acc; 
     for (genvar w = 0; w < NR_IMSICS; w++) begin
         for (genvar k = 0; k < NR_INTP_FILES; k++) begin
             always_comb begin
                 /** reset val */
                 xtopei[w][k]           = '0;
                 xeip_targets[w][k]     = '0;
+                acc[w][k]              = '0;
                 for (int i = 0; i < NR_REG; i++) begin
-                    for (int j = 1; j <= NR_BITS_SRC; j++) begin
+                    for (int j = 0; j <= NR_BITS_SRC; j++) begin
                         if ((eie_q[w][(k*NR_REG)+i][j] && eip_q[w][(k*NR_REG)+i][j]) &&
                             ((eithreshold_q[w][k] == 0) || (j[NR_SRC_LEN-1:0] < eithreshold_q[w][k]))) begin
-                            xtopei[w][k]           = j[NR_SRC_LEN-1:0];
+                            acc[w][k]              = i*NR_BITS_SRC;
+                            xtopei[w][k]           = j[NR_SRC_LEN-1:0] + acc[w][k][NR_SRC_LEN-1:0];
                             /** If delivery is enable for this intp file, notify the hart */
                             if (eidelivery_q[w][k]) begin
-                                xeip_targets[w][k]     = 1'b1;
+                                xeip_targets[w][k] = 1'b1;
                             end
                             break;
                         end

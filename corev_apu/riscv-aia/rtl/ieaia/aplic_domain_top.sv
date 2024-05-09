@@ -6,10 +6,11 @@
 */
 
 module aplic_domain_top #(
-   parameter int                                NR_DOMAINS              = 2,
-   parameter int                                NR_SRC                  = 32,
-   parameter int                                MIN_PRIO                = 6,
-   parameter int                                NR_IDCs                 = 1,
+   parameter int unsigned                       XLEN                    = 64,
+   parameter int unsigned                       NR_DOMAINS              = 2,
+   parameter int unsigned                       NR_SRC                  = 32,
+   parameter int unsigned                       NR_SRC_IMSIC            = 64,
+   parameter int unsigned                       MIN_PRIO                = 6,
    parameter int unsigned                       NR_IMSICS               = 1,
    parameter int unsigned                       NR_VS_FILES_PER_IMSIC   = 0,
    parameter int unsigned                       AXI_ADDR_WIDTH          = 64     ,
@@ -25,7 +26,7 @@ module aplic_domain_top #(
    parameter int                                NR_REG                  = (NR_SRC-1)/32,
    parameter int unsigned                       NR_INTP_FILES           = 2 + NR_VS_FILES_PER_IMSIC,
    parameter int                                VS_INTP_FILE_LEN        = $clog2(NR_VS_FILES_PER_IMSIC),
-   parameter int                                NR_SRC_LEN              = $clog2(NR_SRC)
+   parameter int                                NR_SRC_LEN              = $clog2(NR_SRC_IMSIC)
 ) (
    input  logic                                                      i_clk             ,
    input  logic                                                      ni_rst            ,
@@ -36,11 +37,11 @@ module aplic_domain_top #(
    /** NOTE: This should be a struct */
    input  logic [NR_IMSICS-1:0][1:0]                                 i_priv_lvl        ,
    input  logic [NR_IMSICS-1:0][VS_INTP_FILE_LEN:0]                  i_vgein           ,
-   input  logic [NR_IMSICS-1:0][32-1:0]                              i_imsic_addr     ,
-   input  logic [NR_IMSICS-1:0][32-1:0]                              i_imsic_data      ,
+   input  logic [NR_IMSICS-1:0][32-1:0]                              i_imsic_addr      ,
+   input  logic [NR_IMSICS-1:0][XLEN-1:0]                            i_imsic_data      ,
    input  logic [NR_IMSICS-1:0]                                      i_imsic_we        ,
    input  logic [NR_IMSICS-1:0]                                      i_imsic_claim     ,
-   output logic [NR_IMSICS-1:0][32-1:0]                              o_imsic_data      ,
+   output logic [NR_IMSICS-1:0][XLEN-1:0]                            o_imsic_data      ,
    output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0]   o_xtopei          ,
    output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                   o_Xeip_targets    ,
    output logic [NR_IMSICS-1:0]                                      o_imsic_exception ,
@@ -91,9 +92,10 @@ module aplic_domain_top #(
 
 // ========================== NOTIFIER ============================
    aplic_domain_notifier #(    
+      .XLEN                   ( XLEN                  ),      
       .NR_SRC                 ( NR_SRC                ),      
+      .NR_SRC_IMSIC           ( NR_SRC_IMSIC          ),      
       .MIN_PRIO               ( MIN_PRIO              ),  
-      .NR_IDCs                ( NR_IDCs               ),
       .NR_IMSICS              ( NR_IMSICS             ),
       .NR_VS_FILES_PER_IMSIC  ( NR_VS_FILES_PER_IMSIC ),
       .AXI_ADDR_WIDTH         ( AXI_ADDR_WIDTH        ),   
@@ -115,7 +117,7 @@ module aplic_domain_top #(
       .o_intp_forwd_id        ( intp_forwd_id         ),         
       .i_priv_lvl             ( i_priv_lvl            ),   
       .i_vgein                ( i_vgein               ),
-      .i_imsic_addr          ( i_imsic_addr         ),      
+      .i_imsic_addr           ( i_imsic_addr          ),      
       .i_imsic_data           ( i_imsic_data          ),      
       .i_imsic_we             ( i_imsic_we            ),   
       .i_imsic_claim          ( i_imsic_claim         ),      
@@ -134,7 +136,6 @@ module aplic_domain_top #(
       .DOMAIN_S_ADDR          ( 32'hd000000                       ),     
       .NR_SRC                 ( NR_SRC                            ),      
       .MIN_PRIO               ( MIN_PRIO                          ),  
-      .NR_IDCs                ( NR_IDCs                           ),
       .reg_req_t              ( reg_req_t                         ),
       .reg_rsp_t              ( reg_rsp_t                         )
    ) i_aplic_domain_regctl_minimal (

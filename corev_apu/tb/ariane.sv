@@ -32,11 +32,11 @@ module ariane import ariane_pkg::*; #(
   // IMSIC
   output  logic [1:0]                                                     imsic_priv_lvl_o    ,
   output  logic [ariane_soc::NrVSIntpFilesW:0]                            imsic_vgein_o       ,
-  output  logic [32-1:0]                                                  imsic_addr_o        ,
-  output  logic [32-1:0]                                                  imsic_data_o        ,
+  output  logic [31:0]                                                    imsic_addr_o        ,
+  output  logic [riscv::XLEN-1:0]                                         imsic_data_o        ,
   output  logic                                                           imsic_we_o          ,
   output  logic                                                           imsic_claim_o       ,
-  input   logic [32-1:0]                                                  imsic_data_i        ,
+  input   logic [riscv::XLEN-1:0]                                         imsic_data_i        ,
   input   logic                                                           imsic_exception_i   ,
   input   logic [ariane_soc::NrIntpFiles-1:0][ariane_soc::NrSourcesW-1:0] imsic_xtopei_i      ,
   // Interrupt inputs

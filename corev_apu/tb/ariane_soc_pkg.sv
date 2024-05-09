@@ -14,7 +14,7 @@ package ariane_soc;
   // M-Mode Hart, S-Mode Hart
   localparam int unsigned NumTargets = 2;
   // Uart, SPI, Ethernet, reserved
-  localparam int unsigned NumSources = 32;
+  localparam int unsigned NumSources = 32; // Number of interrupts for platform-level interrupt controller 
   localparam int unsigned MaxPriority = 7;
 
   // CLIC
@@ -22,6 +22,7 @@ package ariane_soc;
   localparam int unsigned CLICIntCtlBits = 8;
 
   // AIA
+  localparam int unsigned NumSourcesImsic = cva6_config_pkg::CVA6ConfigNumSourcesImsic;
   localparam int unsigned NrVSIntpFiles   = cva6_config_pkg::CVA6ConfigNrVSIntpFiles;
   localparam int unsigned NrVSIntpFilesW  = cva6_config_pkg::CVA6ConfigNrVSIntpFilesW;
   localparam int unsigned NrIntpFiles     = cva6_config_pkg::CVA6ConfigNrIntpFiles; 

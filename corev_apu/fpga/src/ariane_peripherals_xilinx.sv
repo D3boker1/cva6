@@ -38,11 +38,11 @@ module ariane_peripherals #(
     AXI_BUS.Slave      imsic           ,
     input  logic [ariane_soc::NumHarts-1:0][1:0]                                  i_priv_lvl      ,
     input  logic [ariane_soc::NumHarts-1:0][ariane_soc::NrVSIntpFilesW:0]         i_vgein         ,
-    input  logic [ariane_soc::NumHarts-1:0][32-1:0]                               i_imsic_addr   ,
-    input  logic [ariane_soc::NumHarts-1:0][32-1:0]                               i_imsic_data    ,
+    input  logic [ariane_soc::NumHarts-1:0][31:0]                                 i_imsic_addr   ,
+    input  logic [ariane_soc::NumHarts-1:0][riscv::XLEN-1:0]                      i_imsic_data    ,
     input  logic [ariane_soc::NumHarts-1:0]                                       i_imsic_we      ,
     input  logic [ariane_soc::NumHarts-1:0]                                       i_imsic_claim   ,
-    output logic [ariane_soc::NumHarts-1:0][32-1:0]                               o_imsic_data    ,
+    output logic [ariane_soc::NumHarts-1:0][riscv::XLEN-1:0]                      o_imsic_data    ,
     output logic [ariane_soc::NumHarts-1:0][ariane_soc::NrIntpFiles-1:0][ariane_soc::NrSourcesW-1:0] o_xtopei,
     output logic [ariane_soc::NumHarts-1:0]                                       o_imsic_exception,
     output logic [ariane_soc::NumHarts-1:0][ariane_soc::NrIntpFiles-1:0]          irq_o            ,
@@ -198,7 +198,9 @@ module ariane_peripherals #(
     `AXI_ASSIGN_FROM_RESP(imsic, lite_msi_resp)
 
     aplic_top #(
+        .XLEN                ( riscv::XLEN                       ),
         .NR_SRC              ( ariane_soc::NumSources            ),
+        .NR_SRC_IMSIC        ( ariane_soc::NumSourcesImsic       ),
         .MIN_PRIO            ( ariane_soc::MaxPriority           ),
         .NR_IMSICS           ( ariane_soc::NumHarts              ),
         .NR_VS_FILES_PER_IMSIC ( ariane_soc::NrVSIntpFiles       ),

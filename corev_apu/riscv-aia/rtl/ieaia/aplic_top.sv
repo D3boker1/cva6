@@ -6,10 +6,11 @@
 */
  
 module aplic_top #(
-   parameter int                                NR_SRC                  = 32    ,
-   parameter int                                MIN_PRIO                = 6     ,
-   parameter int                                NR_DOMAINS              = 2     ,
-   parameter int                                NR_IDCs                 = 1     ,
+   parameter int unsigned                       XLEN                    = 64    ,
+   parameter int unsigned                       NR_SRC                  = 32    ,
+   parameter int unsigned                       NR_SRC_IMSIC            = 64    ,
+   parameter int unsigned                       MIN_PRIO                = 6     ,
+   parameter int unsigned                       NR_DOMAINS              = 2     ,
    parameter int unsigned                       NR_IMSICS               = 1     ,
    parameter int unsigned                       NR_VS_FILES_PER_IMSIC   = 0     ,
    parameter int unsigned                       AXI_ADDR_WIDTH          = 64     ,
@@ -22,7 +23,7 @@ module aplic_top #(
    // DO NOT EDIT BY PARAMETER
    parameter int unsigned                       NR_INTP_FILES           = 2 + NR_VS_FILES_PER_IMSIC     ,
    parameter int                                VS_INTP_FILE_LEN        = $clog2(NR_VS_FILES_PER_IMSIC) ,
-   parameter int                                NR_SRC_LEN              = $clog2(NR_SRC)
+   parameter int                                NR_SRC_LEN              = $clog2(NR_SRC_IMSIC)
 ) (
    input  logic                                                      i_clk             ,
    input  logic                                                      ni_rst            ,
@@ -34,11 +35,11 @@ module aplic_top #(
    /** NOTE: This should be a struct */
    input  logic [NR_IMSICS-1:0][1:0]                                 i_priv_lvl        ,
    input  logic [NR_IMSICS-1:0][VS_INTP_FILE_LEN:0]                  i_vgein           ,
-   input  logic [NR_IMSICS-1:0][32-1:0]                              i_imsic_addr     ,
-   input  logic [NR_IMSICS-1:0][32-1:0]                              i_imsic_data      ,
+   input  logic [NR_IMSICS-1:0][32-1:0]                              i_imsic_addr      ,
+   input  logic [NR_IMSICS-1:0][XLEN-1:0]                            i_imsic_data      ,
    input  logic [NR_IMSICS-1:0]                                      i_imsic_we        ,
    input  logic [NR_IMSICS-1:0]                                      i_imsic_claim     ,
-   output logic [NR_IMSICS-1:0][32-1:0]                              o_imsic_data      ,
+   output logic [NR_IMSICS-1:0][XLEN-1:0]                            o_imsic_data      ,
    output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0][NR_SRC_LEN-1:0]   o_xtopei          ,
    output logic [NR_IMSICS-1:0][NR_INTP_FILES-1:0]                   o_Xeip_targets    ,
    output logic [NR_IMSICS-1:0]                                      o_imsic_exception ,
@@ -62,9 +63,10 @@ end
 
 /** APLIC Domain with IMSIC island */
 aplic_domain_top #(
+   .XLEN                    ( XLEN                  ),
    .NR_DOMAINS              ( NR_DOMAINS            ),
    .NR_SRC                  ( NR_SRC                ),
-   .NR_IDCs                 ( NR_IDCs               ),
+   .NR_SRC_IMSIC            ( NR_SRC_IMSIC          ),
    .MIN_PRIO                ( MIN_PRIO              ),
    .NR_IMSICS               ( NR_IMSICS             ),
    .NR_VS_FILES_PER_IMSIC   ( NR_VS_FILES_PER_IMSIC ),

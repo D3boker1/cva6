@@ -93,6 +93,7 @@ package cva6_config_pkg;
     localparam CVA6ConfigNrVSIntpFiles      = 1;
     localparam CVA6ConfigNrVSIntpFilesW     = $clog2(CVA6ConfigNrVSIntpFiles);
     localparam CVA6ConfigNrIntpFiles        = 2 + CVA6ConfigNrVSIntpFiles;
-    localparam CVA6ConfigNrSourcesW         = $clog2(32);
+    localparam CVA6ConfigNumSourcesImsic    = 64; // multiple of 64, and may be a minimum of 64 and a maximum of 2048
+    localparam CVA6ConfigNrSourcesW         = $clog2(CVA6ConfigNumSourcesImsic);
 
 endpackage
