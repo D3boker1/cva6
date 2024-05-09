@@ -18,7 +18,7 @@ module aplic_domain_notifier #(
     parameter type                 axi_req_t               = ariane_axi::req_t ,
     parameter type                 axi_resp_t              = ariane_axi::resp_t,
     // DO NOT EDIT BY PARAMETER
-    parameter int                  NR_BITS_SRC      = 32,//(NR_SRC > 32) ? 32 : NR_SRC,
+    parameter int                  NR_BITS_SRC      = 32,
     parameter int                  NR_REG           = (NR_SRC-1)/32,
     parameter int unsigned         NR_INTP_FILES    = 2 + NR_VS_FILES_PER_IMSIC,
     parameter int                  IMSICS_LEN       = (NR_IMSICS == 1) ? 1: $clog2(NR_IMSICS),

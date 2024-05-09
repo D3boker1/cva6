@@ -30,10 +30,6 @@ module aplic_top #(
    /** APLIC domain interface */
    input  reg_req_t                                                  i_req_cfg         ,
    output reg_rsp_t                                                  o_resp_cfg        ,
-   `ifdef DIRECT_MODE
-   /** Interrupt Notification to Targets. One per priv. level. */
-   output logic [(NR_DOMAINS*NR_IDCs)-1:0]                           o_Xeip_targets
-   `elsif MSI_MODE
    /** IMSIC island CSR interface */
    /** NOTE: This should be a struct */
    input  logic [NR_IMSICS-1:0][1:0]                                 i_priv_lvl        ,
@@ -49,7 +45,6 @@ module aplic_top #(
    /** IMSIC island AXI interface*/
    input   axi_req_t                                                 i_imsic_req       ,
    output  axi_resp_t                                                o_imsic_resp
-   `endif
 ); /** End of APLIC top interface */
 
 /** 
@@ -88,7 +83,7 @@ aplic_domain_top #(
    .i_irq_sources    ( sync_irq_src[1]    ),
    .i_priv_lvl       ( i_priv_lvl         ),
    .i_vgein          ( i_vgein            ),
-   .i_imsic_addr    ( i_imsic_addr      ),
+   .i_imsic_addr     ( i_imsic_addr       ),
    .i_imsic_data     ( i_imsic_data       ),
    .i_imsic_we       ( i_imsic_we         ),
    .i_imsic_claim    ( i_imsic_claim      ),

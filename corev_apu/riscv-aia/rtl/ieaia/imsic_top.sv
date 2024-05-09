@@ -15,9 +15,9 @@ module imsic_island_top #(
    parameter type                 axi_req_t        = ariane_axi::req_t ,
    parameter type                 axi_resp_t       = ariane_axi::resp_t,
    // DO NOT EDIT BY PARAMETER
-   parameter int unsigned         NR_INTP_FILES     = 2 + NR_VS_FILES_PER_IMSIC,
-   parameter int                  NR_BITS_SRC      = 32,//(NR_SRC > 31) ? 32 : NR_SRC,
-   parameter int                  NR_REG           = (NR_SRC < 32) ? 1 : NR_SRC/32,
+   parameter int unsigned         NR_INTP_FILES    = 2 + NR_VS_FILES_PER_IMSIC,
+   parameter int                  NR_BITS_SRC      = 32,
+   parameter int                  NR_REG           = (NR_SRC < NR_BITS_SRC) ? 1 : NR_SRC/NR_BITS_SRC,
    parameter int                  INTP_FILE_LEN    = $clog2(NR_INTP_FILES),
    parameter int                  VS_INTP_FILE_LEN = $clog2(NR_VS_FILES_PER_IMSIC),
    parameter int                  NR_SRC_LEN       = $clog2(NR_SRC)

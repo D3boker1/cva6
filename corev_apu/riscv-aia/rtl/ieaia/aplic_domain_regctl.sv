@@ -10,7 +10,6 @@ module aplic_domain_regctl #(
     parameter int                                                   DOMAIN_M_ADDR       = 32'hc000000,
     parameter int                                                   DOMAIN_S_ADDR       = 32'hd000000,
     parameter int                                                   NR_SRC              = 32,
-    parameter int                                                   NR_IDCs             = 1,
     parameter int                                                   MIN_PRIO            = 6,
     parameter type                                                  reg_req_t           = logic,
     parameter type                                                  reg_rsp_t           = logic,
@@ -147,13 +146,10 @@ logic [2:0]                                         setie_select_i, setip_select
   logic [NR_DOMAINS-1:0][NR_SRC-1:1][31:0]          target_full;
   logic [NR_DOMAINS-1:0][NR_SRC-1:1][31:0]          target_o;
   logic [NR_DOMAINS-1:0][NR_SRC-1:1]                target_we;
-
-`ifdef MSI_MODE
   // Register genmsi
   logic [NR_DOMAINS-1:0][31:0]                      genmsi_q, genmsi_d;
   logic [NR_DOMAINS-1:0][31:0]                      genmsi_o;
   logic [NR_DOMAINS-1:0]                            genmsi_we;
-`endif
 
   aplic_regmap_minimal #(
     .DOMAIN_M_ADDR          ( DOMAIN_M_ADDR     ),

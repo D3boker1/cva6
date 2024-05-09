@@ -11,7 +11,7 @@ module aplic_regmap_minimal #(
    parameter int                                NR_SRC            = 32,
    parameter int                                NR_REG            = 0,
    parameter int                                MIN_PRIO          = 6,
-   parameter int                                IPRIOLEN          = 3, //(MIN_PRIO == 1) ? 1 : $clog2(MIN_PRIO),
+   parameter int                                IPRIOLEN          = 3,
    parameter type                               reg_req_t         = logic,
    parameter type                               reg_rsp_t         = logic
 ) (

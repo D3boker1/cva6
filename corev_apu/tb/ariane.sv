@@ -81,7 +81,7 @@ module ariane import ariane_pkg::*; #(
     .hart_id_i            ( hart_id_i                 ),
     .imsic_priv_lvl_o     ( imsic_priv_lvl_o          ),      
     .imsic_vgein_o        ( imsic_vgein_o             ),    
-    .imsic_addr_o        ( imsic_addr_o             ),  
+    .imsic_addr_o         ( imsic_addr_o              ),  
     .imsic_data_o         ( imsic_data_o              ),  
     .imsic_we_o           ( imsic_we_o                ),
     .imsic_claim_o        ( imsic_claim_o             ),    

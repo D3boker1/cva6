@@ -184,38 +184,9 @@ module ariane_peripherals #(
     `REG_BUS_ASSIGN_TO_REQ(plic_req, reg_bus)
     `REG_BUS_ASSIGN_FROM_RSP(reg_bus, plic_rsp)
 
-    // ariane_axi::req_t         lite_msi_req;
-    // ariane_axi::resp_t        lite_msi_resp; 
-
-    // /** AW Channel */
-    // assign lite_msi_req.aw.id       = imsic.aw_id;
-    // assign lite_msi_req.aw.addr     = imsic.aw_addr;
-    // assign lite_msi_req.aw_valid    = imsic.aw_valid;
-    // assign lite_msi_req.aw_valid    = imsic.aw_valid;
-    // assign imsic.aw_ready           = lite_msi_resp.aw_ready;
-    // /** W Channel */
-    // assign lite_msi_req.w.data      = imsic.w_data;
-    // assign lite_msi_req.w.strb      = imsic.w_strb;
-    // assign lite_msi_req.w_valid     = imsic.w_valid;
-    // assign lite_msi_req.w.last      = imsic.w_last;
-    // assign imsic.w_ready            = lite_msi_resp.w_ready;
-    // /** B Channel */
-    // assign lite_msi_req.b_ready     = imsic.b_ready;
-    // assign imsic.b_valid            = lite_msi_resp.b_valid;
-    // assign imsic.b_resp             = lite_msi_resp.b.resp;
-    // /** AR Channel */
-    // assign lite_msi_req.ar.addr     = imsic.ar_addr;
-    // assign lite_msi_req.ar_valid    = imsic.ar_valid;
-    // assign imsic.ar_ready           = lite_msi_resp.ar_ready;
-    // /** R Channel */
-    // assign lite_msi_req.r_ready     = imsic.r_ready;
-    // assign imsic.r_valid            = lite_msi_resp.r_valid;
-    // assign imsic.r_data             = lite_msi_resp.r.data;
-    // assign imsic.r_resp             = lite_msi_resp.r.resp;
-
     `AXI_TYPEDEF_ALL(imsic_axi_slave,
                  logic [    AxiAddrWidth-1:0],
-                 logic [      AxiIdWidth-1:0], //AxiIdWidth
+                 logic [      AxiIdWidth-1:0],
                  logic [    AxiDataWidth-1:0],
                  logic [(AxiDataWidth/8)-1:0],
                  logic [    AxiUserWidth-1:0])
