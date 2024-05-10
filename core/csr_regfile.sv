@@ -107,11 +107,11 @@ module csr_regfile import ariane_pkg::*; #(
     // To/From IMSIC
     output  logic [1:0]                                                         imsic_priv_lvl_o    ,
     output  logic [ariane_pkg::NrVSIntpFilesW:0]                                imsic_vgein_o       ,
-    output  logic [32-1:0]                                                      imsic_addr_o        ,
-    output  logic [32-1:0]                                                      imsic_data_o        ,
+    output  logic [31:0]                                                        imsic_addr_o        ,
+    output  logic [riscv::XLEN-1:0]                                             imsic_data_o        ,
     output  logic                                                               imsic_we_o          ,
     output  logic                                                               imsic_claim_o       ,
-    input   logic [32-1:0]                                                      imsic_data_i        ,
+    input   logic [riscv::XLEN-1:0]                                             imsic_data_i        ,
     input   logic                                                               imsic_exception_i   ,
     input   logic [ariane_pkg::NrIntpFiles-1:0][ariane_pkg::NrSourcesW-1:0]     imsic_xtopei_i      ,
     // fence.t
@@ -549,7 +549,7 @@ module csr_regfile import ariane_pkg::*; #(
                             rimsic_addr         = {{32-8{1'b0}}, miselect_q}; 
                             rimsic_priv_lvl     = riscv::PRIV_LVL_M;
                             rimsic_vgein        = '0;
-                            csr_rdata           = {{32-1{1'b0}}, imsic_data_i};
+                            csr_rdata           = imsic_data_i;
                         end 
                         default: read_access_exception = 1'b1;
                     endcase
@@ -571,7 +571,7 @@ module csr_regfile import ariane_pkg::*; #(
                             rimsic_addr         = {{32-8{1'b0}}, siselect_q}; 
                             rimsic_priv_lvl     = riscv::PRIV_LVL_S;
                             rimsic_vgein        = '0;
-                            csr_rdata           = {{32-1{1'b0}}, imsic_data_i};;
+                            csr_rdata           = imsic_data_i;
                         end 
                         default: read_access_exception = 1'b1;
                     endcase
@@ -596,7 +596,7 @@ module csr_regfile import ariane_pkg::*; #(
                                 rimsic_addr         = {{riscv::XLEN-8{1'b0}}, vsiselect_q}; 
                                 rimsic_priv_lvl     = riscv::PRIV_LVL_S;
                                 rimsic_vgein        = hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0];
-                                csr_rdata           = {{32-1{1'b0}}, imsic_data_i};;
+                                csr_rdata           = imsic_data_i;
                             end 
                             default: virtual_read_access_exception = 1'b1;
                         endcase
@@ -1393,7 +1393,7 @@ module csr_regfile import ariane_pkg::*; #(
                             wimsic_addr         = {{riscv::XLEN-8{1'b0}}, miselect_q}; 
                             wimsic_priv_lvl     = riscv::PRIV_LVL_M;
                             wimsic_vgein        = '0;
-                            imsic_data_o        = csr_wdata[31:0];
+                            imsic_data_o        = csr_wdata;
                             imsic_we_o          = 1'b1;
                         end 
                         default: update_access_exception = 1'b1;
@@ -1415,7 +1415,7 @@ module csr_regfile import ariane_pkg::*; #(
                             wimsic_addr         = {{riscv::XLEN-8{1'b0}}, siselect_q}; 
                             wimsic_priv_lvl     = riscv::PRIV_LVL_S;
                             wimsic_vgein        = '0;
-                            imsic_data_o        = csr_wdata[31:0];
+                            imsic_data_o        = csr_wdata;
                             imsic_we_o          = 1'b1;
                         end 
                         default: update_access_exception = 1'b1;
@@ -1441,7 +1441,7 @@ module csr_regfile import ariane_pkg::*; #(
                                 wimsic_addr         = {{riscv::XLEN-8{1'b0}}, vsiselect_q}; 
                                 wimsic_priv_lvl     = riscv::PRIV_LVL_S;
                                 wimsic_vgein        = hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0];
-                                imsic_data_o        = csr_wdata[31:0];
+                                imsic_data_o        = csr_wdata;
                                 imsic_we_o          = 1'b1;
                             end 
                             default: virtual_update_access_exception = 1'b1;
@@ -1638,7 +1638,7 @@ module csr_regfile import ariane_pkg::*; #(
         // Machine Mode External Interrupt Pending
         mip_d[riscv::IRQ_M_EXT] = irq_i[0];
         // Machine software interrupt
-        mip_d[riscv::IRQ_M_SOFT] = ipi_i;
+        mip_d[riscv::IRQ_M_SOFT] = '0;
         // Timer interrupt pending, coming from platform timer
         mip_d[riscv::IRQ_M_TIMER] = time_irq_i;
 

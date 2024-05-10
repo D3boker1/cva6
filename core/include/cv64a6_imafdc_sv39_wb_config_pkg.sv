@@ -89,10 +89,11 @@ package cva6_config_pkg;
     // For ariane_soc (no need to adjust in other systems
     localparam ArianeSoCNumHarts = 2;
    
-    // CVA6 Config AIA
+    // AIA Config
     localparam CVA6ConfigNrVSIntpFiles      = 1;
     localparam CVA6ConfigNrVSIntpFilesW     = $clog2(CVA6ConfigNrVSIntpFiles);
     localparam CVA6ConfigNrIntpFiles        = 2 + CVA6ConfigNrVSIntpFiles;
-    localparam CVA6ConfigNrSourcesW         = $clog2(30);
+    localparam CVA6ConfigNumSourcesImsic    = 64; // multiple of 64, and may be a minimum of 64 and a maximum of 2048
+    localparam CVA6ConfigNrSourcesW         = $clog2(CVA6ConfigNumSourcesImsic);
 
 endpackage
