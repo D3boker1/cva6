@@ -30,15 +30,8 @@ module cva6 import ariane_pkg::*; #(
   input  logic [riscv::VLEN-1:0]       boot_addr_i,  // reset boot address
   input  logic [riscv::XLEN-1:0]       hart_id_i,    // hart id in a multicore environment (reflected in a CSR)
   // IMSIC
-  output  logic [1:0]                                                     imsic_priv_lvl_o    ,
-  output  logic [ariane_pkg::NrVSIntpFilesW:0]                            imsic_vgein_o       ,
-  output  logic [31:0]                                                    imsic_addr_o        ,
-  output  logic [riscv::XLEN-1:0]                                         imsic_data_o        ,
-  output  logic                                                           imsic_we_o          ,
-  output  logic                                                           imsic_claim_o       ,
-  input   logic [riscv::XLEN-1:0]                                         imsic_data_i        ,
-  input   logic                                                           imsic_exception_i   ,
-  input   logic [ariane_pkg::NrIntpFiles-1:0][ariane_pkg::NrSourcesW-1:0] imsic_xtopei_i      ,
+  output imsic_pkg::csr_channel_to_imsic_t      imsic_csr_o, 
+  input  imsic_pkg::csr_channel_from_imsic_t    imsic_csr_i,
   // Interrupt inputs
   input  logic [ariane_pkg::NrIntpFiles-1:0] irq_i,  // level sensitive IR lines, mip & sip & vsip (async)
   input  logic                         ipi_i,        // inter-processor interrupts (async)

@@ -101,19 +101,12 @@ module csr_regfile import ariane_pkg::*; #(
     output logic                  icache_en_o,                // L1 ICache Enable
     output logic                  dcache_en_o,                // L1 DCache Enable
     // From Decoder
-    input  logic [riscv::XLEN-1:0]                                              mtopi_i             ,
-    input  logic [riscv::XLEN-1:0]                                              stopi_i             ,
-    input  logic [riscv::XLEN-1:0]                                              vstopi_i            ,
+    input  logic [riscv::XLEN-1:0]     mtopi_i             ,
+    input  logic [riscv::XLEN-1:0]     stopi_i             ,
+    input  logic [riscv::XLEN-1:0]     vstopi_i            ,
     // To/From IMSIC
-    output  logic [1:0]                                                         imsic_priv_lvl_o    ,
-    output  logic [ariane_pkg::NrVSIntpFilesW:0]                                imsic_vgein_o       ,
-    output  logic [31:0]                                                        imsic_addr_o        ,
-    output  logic [riscv::XLEN-1:0]                                             imsic_data_o        ,
-    output  logic                                                               imsic_we_o          ,
-    output  logic                                                               imsic_claim_o       ,
-    input   logic [riscv::XLEN-1:0]                                             imsic_data_i        ,
-    input   logic                                                               imsic_exception_i   ,
-    input   logic [ariane_pkg::NrIntpFiles-1:0][ariane_pkg::NrSourcesW-1:0]     imsic_xtopei_i      ,
+    output imsic_pkg::csr_channel_to_imsic_t      imsic_csr_o, 
+    input  imsic_pkg::csr_channel_from_imsic_t    imsic_csr_i,
     // fence.t
     output logic [31:0]           fence_t_pad_o,              // Padding time of fence.t relative to time interrupt
     output logic                  fence_t_src_sel_o,          // Pad relative to selected source
@@ -549,13 +542,13 @@ module csr_regfile import ariane_pkg::*; #(
                             rimsic_addr         = {{32-8{1'b0}}, miselect_q}; 
                             rimsic_priv_lvl     = riscv::PRIV_LVL_M;
                             rimsic_vgein        = '0;
-                            csr_rdata           = imsic_data_i;
+                            csr_rdata           = imsic_csr_i.imsic_data;
                         end 
                         default: read_access_exception = 1'b1;
                     endcase
                 end
-                riscv::CSR_MTOPIE:             csr_rdata = ((imsic_xtopei_i[ariane_pkg::M_FILE] << 16)|
-                                                            imsic_xtopei_i[ariane_pkg::M_FILE]);
+                riscv::CSR_MTOPIE:             csr_rdata = ((imsic_csr_i.xtopei[ariane_pkg::M_FILE] << 16)|
+                                                            imsic_csr_i.xtopei[ariane_pkg::M_FILE]);
                 riscv::CSR_MTOPI:              csr_rdata = (mtopi_i == 0) ? '0 : 
                                                            (((mtopi_i) << 16) | AIA_CSR_DEF_PRIO);
                 riscv::CSR_MVIEN:              csr_rdata = '0;
@@ -571,13 +564,13 @@ module csr_regfile import ariane_pkg::*; #(
                             rimsic_addr         = {{32-8{1'b0}}, siselect_q}; 
                             rimsic_priv_lvl     = riscv::PRIV_LVL_S;
                             rimsic_vgein        = '0;
-                            csr_rdata           = imsic_data_i;
+                            csr_rdata           = imsic_csr_i.imsic_data;
                         end 
                         default: read_access_exception = 1'b1;
                     endcase
                 end
-                riscv::CSR_STOPIE:             csr_rdata = ((imsic_xtopei_i[ariane_pkg::S_FILE] << 16)|
-                                                             imsic_xtopei_i[ariane_pkg::S_FILE]);
+                riscv::CSR_STOPIE:             csr_rdata = ((imsic_csr_i.xtopei[ariane_pkg::S_FILE] << 16)|
+                                                             imsic_csr_i.xtopei[ariane_pkg::S_FILE]);
                 riscv::CSR_STOPI:              csr_rdata = (stopi_i == 0) ? '0 : 
                                                            ((stopi_i << 16) | AIA_CSR_DEF_PRIO);
                 riscv::CSR_VSISELECT: begin
@@ -596,7 +589,7 @@ module csr_regfile import ariane_pkg::*; #(
                                 rimsic_addr         = {{riscv::XLEN-8{1'b0}}, vsiselect_q}; 
                                 rimsic_priv_lvl     = riscv::PRIV_LVL_S;
                                 rimsic_vgein        = hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0];
-                                csr_rdata           = imsic_data_i;
+                                csr_rdata           = imsic_csr_i.imsic_data;
                             end 
                             default: virtual_read_access_exception = 1'b1;
                         endcase
@@ -622,8 +615,8 @@ module csr_regfile import ariane_pkg::*; #(
                     if(~ariane_pkg::RVH) read_access_exception = 1'b1;   
                     else begin
                         /** We should check the value of hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0]*/
-                        csr_rdata = ((imsic_xtopei_i[ariane_pkg::S_FILE + hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0]] << 16) 
-                                    | imsic_xtopei_i[ariane_pkg::S_FILE + hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0]]);
+                        csr_rdata = ((imsic_csr_i.xtopei[ariane_pkg::S_FILE + hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0]] << 16) 
+                                    | imsic_csr_i.xtopei[ariane_pkg::S_FILE + hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0]]);
                     end
                 end
                 riscv::CSR_VSTOPI: begin
@@ -895,9 +888,9 @@ module csr_regfile import ariane_pkg::*; #(
         wimsic_addr             = '0;
         wimsic_priv_lvl         = '0;
         wimsic_vgein            = '0;   
-        imsic_data_o            = '0; 
-        imsic_we_o              = '0;
-        imsic_claim_o           = '0; 
+        imsic_csr_o.imsic_data            = '0; 
+        imsic_csr_o.imsic_we              = '0;
+        imsic_csr_o.imsic_claim           = '0; 
 
         // check for correct access rights and that we are writing
         if (csr_we) begin
@@ -1393,15 +1386,15 @@ module csr_regfile import ariane_pkg::*; #(
                             wimsic_addr         = {{riscv::XLEN-8{1'b0}}, miselect_q}; 
                             wimsic_priv_lvl     = riscv::PRIV_LVL_M;
                             wimsic_vgein        = '0;
-                            imsic_data_o        = csr_wdata;
-                            imsic_we_o          = 1'b1;
+                            imsic_csr_o.imsic_data        = csr_wdata;
+                            imsic_csr_o.imsic_we          = 1'b1;
                         end 
                         default: update_access_exception = 1'b1;
                     endcase
                 end
                 riscv::CSR_MTOPIE: begin
                     wimsic_priv_lvl     = riscv::PRIV_LVL_M;
-                    imsic_claim_o       = 1'b1; 
+                    imsic_csr_o.imsic_claim       = 1'b1; 
                 end
                 riscv::CSR_MVIEN:;  // Do nothing, not supported by openSBI
                 riscv::CSR_MVIP:;   // Do nothing, not supported by openSBI
@@ -1415,15 +1408,15 @@ module csr_regfile import ariane_pkg::*; #(
                             wimsic_addr         = {{riscv::XLEN-8{1'b0}}, siselect_q}; 
                             wimsic_priv_lvl     = riscv::PRIV_LVL_S;
                             wimsic_vgein        = '0;
-                            imsic_data_o        = csr_wdata;
-                            imsic_we_o          = 1'b1;
+                            imsic_csr_o.imsic_data        = csr_wdata;
+                            imsic_csr_o.imsic_we          = 1'b1;
                         end 
                         default: update_access_exception = 1'b1;
                     endcase
                 end
                 riscv::CSR_STOPIE: begin
                     wimsic_priv_lvl     = riscv::PRIV_LVL_S;
-                    imsic_claim_o       = 1'b1;
+                    imsic_csr_o.imsic_claim       = 1'b1;
                 end
                 riscv::CSR_VSISELECT: begin
                     if(~ariane_pkg::RVH) begin 
@@ -1441,8 +1434,8 @@ module csr_regfile import ariane_pkg::*; #(
                                 wimsic_addr         = {{riscv::XLEN-8{1'b0}}, vsiselect_q}; 
                                 wimsic_priv_lvl     = riscv::PRIV_LVL_S;
                                 wimsic_vgein        = hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0];
-                                imsic_data_o        = csr_wdata;
-                                imsic_we_o          = 1'b1;
+                                imsic_csr_o.imsic_data        = csr_wdata;
+                                imsic_csr_o.imsic_we          = 1'b1;
                             end 
                             default: virtual_update_access_exception = 1'b1;
                         endcase
@@ -1482,7 +1475,7 @@ module csr_regfile import ariane_pkg::*; #(
                     end else begin
                         wimsic_priv_lvl     = riscv::PRIV_LVL_S;
                         wimsic_vgein        = hstatus_q.vgein[ariane_pkg::NrVSIntpFilesW:0];
-                        imsic_claim_o       = 1'b1; 
+                        imsic_csr_o.imsic_claim       = 1'b1; 
                     end
                 end
                 // performance counters
@@ -2020,9 +2013,9 @@ module csr_regfile import ariane_pkg::*; #(
     // IMSIC Output assign
     // ---------------------------
     /** Give priority to writes */
-    assign imsic_addr_o        = ((imsic_we_o == 1'b1) || (imsic_claim_o == 1'b1) ) ? wimsic_addr    : rimsic_addr;
-    assign imsic_priv_lvl_o    = ((imsic_we_o == 1'b1) || (imsic_claim_o == 1'b1) ) ? wimsic_priv_lvl: rimsic_priv_lvl;
-    assign imsic_vgein_o       = ((imsic_we_o == 1'b1) || (imsic_claim_o == 1'b1) ) ? wimsic_vgein   : rimsic_vgein;
+    assign imsic_csr_o.imsic_addr  = ((imsic_csr_o.imsic_we == 1'b1) || (imsic_csr_o.imsic_claim == 1'b1) ) ? wimsic_addr    : rimsic_addr;
+    assign imsic_csr_o.priv_lvl    = ((imsic_csr_o.imsic_we == 1'b1) || (imsic_csr_o.imsic_claim == 1'b1) ) ? wimsic_priv_lvl: rimsic_priv_lvl;
+    assign imsic_csr_o.vgein       = ((imsic_csr_o.imsic_we == 1'b1) || (imsic_csr_o.imsic_claim == 1'b1) ) ? wimsic_vgein   : rimsic_vgein;
 
     // ---------------------------
     // CSR OP Select Logic
